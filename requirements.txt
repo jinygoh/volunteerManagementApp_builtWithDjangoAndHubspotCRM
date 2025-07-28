@@ -1,2 +1,3 @@
 django
 hubspot-api-client
+mysqlclient
