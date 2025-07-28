@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pending Volunteers</title>
+</head>
+<body>
+    <h1>Pending Volunteers</h1>
+    <ul>
+        {% for volunteer in volunteers %}
+            <li>
+                {{ volunteer.first_name }} {{ volunteer.last_name }} - {{ volunteer.email }}
+                <form method="post" action="{% url 'approve_volunteer' volunteer.pk %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit">Approve</button>
+                </form>
+                <form method="post" action="{% url 'reject_volunteer' volunteer.pk %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit">Reject</button>
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'volunteer_list' %}">Back to Volunteer List</a>
+</body>
+</html>
