@@ -1,9 +1,8 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Pending Volunteers</title>
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %}Pending Volunteers{% endblock %}
+
+{% block content %}
     <h1>Pending Volunteers</h1>
     <ul>
         {% for volunteer in volunteers %}
@@ -11,15 +10,13 @@
                 {{ volunteer.first_name }} {{ volunteer.last_name }} - {{ volunteer.email }}
                 <form method="post" action="{% url 'approve_volunteer' volunteer.pk %}" style="display: inline;">
                     {% csrf_token %}
-                    <button type="submit">Approve</button>
+                    <button type="submit" class="btn">Approve</button>
                 </form>
                 <form method="post" action="{% url 'reject_volunteer' volunteer.pk %}" style="display: inline;">
                     {% csrf_token %}
-                    <button type="submit">Reject</button>
+                    <button type="submit" class="btn">Reject</button>
                 </form>
             </li>
         {% endfor %}
     </ul>
-    <a href="{% url 'volunteer_list' %}">Back to Volunteer List</a>
-</body>
-</html>
+{% endblock %}

@@ -1,25 +1,17 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Volunteer List</title>
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %}Volunteer List{% endblock %}
+
+{% block content %}
     <h1>Volunteer List</h1>
     <ul>
         {% for volunteer in volunteers %}
             <li>
                 {{ volunteer.first_name }} {{ volunteer.last_name }} - {{ volunteer.email }}
-                <a href="{% url 'volunteer_update' volunteer.pk %}">Edit</a>
-                <a href="{% url 'volunteer_delete' volunteer.pk %}">Delete</a>
+                <a href="{% url 'volunteer_update' volunteer.pk %}" class="btn">Edit</a>
+                <a href="{% url 'volunteer_delete' volunteer.pk %}" class="btn">Delete</a>
             </li>
         {% endfor %}
     </ul>
-    <a href="{% url 'register' %}">Register New Volunteer</a>
-    <br>
-    <a href="{% url 'import_volunteers' %}">Import Volunteers</a>
-    <br>
-    <a href="{% url 'skills_chart' %}">View Skills Chart</a>
-    <br>
-    <a href="{% url 'pending_volunteers' %}">View Pending Volunteers</a>
-</body>
-</html>
+    <a href="{% url 'register' %}" class="btn">Register New Volunteer</a>
+{% endblock %}
