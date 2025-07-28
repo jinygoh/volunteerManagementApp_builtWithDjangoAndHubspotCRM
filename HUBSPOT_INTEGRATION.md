@@ -2,9 +2,9 @@
 
 To integrate with HubSpot, you will need to follow these steps:
 
-1. **Install the HubSpot API client library:**
+1. **Install the required libraries:**
    ```bash
-   pip install hubspot-api-client
+   pip install -r requirements.txt
    ```
 
 2. **Get your HubSpot API key:**
@@ -49,28 +49,6 @@ To integrate with HubSpot, you will need to follow these steps:
      #         print("Exception when creating contact: %s\n" % e)
      #     return redirect('success')
      ```
-
-- **Install the MySQL client library:**
-  ```bash
-  pip install mysqlclient
-  ```
-
-- **Configure the database settings:**
-  - Open the `hopehands/hopehands/settings.py` file.
-  - Find the `DATABASES` setting and replace it with the following:
-    ```python
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'your-db-name',
-            'USER': 'your-db-user',
-            'PASSWORD': 'your-db-password',
-            'HOST': 'localhost',
-            'PORT': '3306',
-        }
-    }
-    ```
-  - Replace `your-db-name`, `your-db-user`, and `your-db-password` with your MySQL database credentials.
 
 5. **Run the development server:**
    ```bash
