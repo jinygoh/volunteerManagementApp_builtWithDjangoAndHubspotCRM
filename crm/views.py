@@ -64,23 +64,27 @@ def import_volunteers(request):
         return redirect('volunteer_list')
     return render(request, 'crm/import_volunteers.html')
 
+import matplotlib.pyplot as plt
+import io
+import base64
+from django.db.models import Count
+from django.http import HttpResponse
+
 @login_required
 def skills_chart(request):
-    skills_data = {}
-    volunteers = Volunteer.objects.all()
-    for volunteer in volunteers:
-        skills = [s.strip() for s in volunteer.skills.split(',')]
-        for skill in skills:
-            if skill:
-                skills_data[skill] = skills_data.get(skill, 0) + 1
+    skills_data = Volunteer.objects.values('skills').annotate(count=Count('skills')).order_by('-count')
+
+    skills = [item['skills'] for item in skills_data]
+    counts = [item['count'] for item in skills_data]
 
     fig, ax = plt.subplots()
-    ax.bar(skills_data.keys(), skills_data.values())
+    ax.bar(skills, counts)
     ax.set_ylabel('Number of Volunteers')
     ax.set_title('Volunteers by Skill')
+    plt.xticks(rotation=45, ha='right')
 
     buf = io.BytesIO()
-    plt.savefig(buf, format='png')
+    plt.savefig(buf, format='png', bbox_inches='tight')
     buf.seek(0)
     string = base64.b64encode(buf.read())
     uri = 'data:image/png;base64,' + string.decode('utf-8')
