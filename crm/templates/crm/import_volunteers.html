@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Import Volunteers</title>
+</head>
+<body>
+    <h1>Import Volunteers from CSV</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="csv_file" accept=".csv">
+        <button type="submit">Import</button>
+    </form>
+    <a href="{% url 'volunteer_list' %}">Back to Volunteer List</a>
+</body>
+</html>
