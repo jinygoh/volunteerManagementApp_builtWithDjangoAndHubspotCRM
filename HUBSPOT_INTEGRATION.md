@@ -7,19 +7,17 @@ To integrate with HubSpot, you will need to follow these steps:
    pip install -r requirements.txt
    ```
 
-2. **Get your HubSpot API key:**
-   - Log in to your HubSpot account.
-   - Go to **Settings > Integrations > API Key**.
-   - If you don't have an API key, create one.
-
-3. **Add your HubSpot API key to the project:**
-   - Open the `hopehands/hopehands/hubspot_api.py` file.
-   - Replace the empty string with your HubSpot API key:
-     ```python
-     HUBSPOT_API_KEY = "your-hubspot-api-key"
+2. **Create a `.env` file:**
+   - Create a file named `.env` in the root directory of the project.
+   - Add the following lines to the `.env` file, replacing the placeholder values with your actual credentials:
+     ```
+     HUBSPOT_API_KEY=your-hubspot-api-key
+     DB_NAME=your-db-name
+     DB_USER=your-db-user
+     DB_PASSWORD=your-db-password
      ```
 
-4. **Uncomment the HubSpot integration code:**
+3. **Uncomment the HubSpot integration code:**
    - Open the `hopehands/volunteer/views.py` file.
    - Uncomment the following lines:
      ```python
@@ -50,12 +48,12 @@ To integrate with HubSpot, you will need to follow these steps:
      #     return redirect('success')
      ```
 
-5. **Run the development server:**
+4. **Run the development server:**
    ```bash
    python hopehands/manage.py runserver
    ```
 
-6. **Test the integration:**
+5. **Test the integration:**
    - Go to the volunteer signup page in your browser.
    - Fill out the form and submit it.
    - Check your HubSpot account to see if the new contact was created.
