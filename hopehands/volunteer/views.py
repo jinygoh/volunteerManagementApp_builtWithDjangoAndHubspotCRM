@@ -19,8 +19,11 @@ def volunteer_signup(request):
                     "email": volunteer.email,
                     "firstname": volunteer.name,
                     "phone": volunteer.phone_number,
-                    "lifecyclestage": "lead"
+                    "lifecyclestage": "lead",
+                    "preferred_volunteer_role": volunteer.preferred_volunteer_role,
+                    "availability": volunteer.availability,
                 }
+                print("Creating HubSpot contact with properties:", properties)
                 simple_public_object_input = SimplePublicObjectInput(properties=properties)
                 api_response = hubspot.crm.contacts.basic_api.create(
                     simple_public_object_input_for_create=simple_public_object_input
