@@ -73,18 +73,16 @@ WSGI_APPLICATION = "hopehands.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-from decouple import Config, RepositoryEnv
+import os
 
-config = Config(RepositoryEnv(BASE_DIR / '.env'))
-
-HUBSPOT_PRIVATE_APP_TOKEN = config('HUBSPOT_PRIVATE_APP_TOKEN')
+HUBSPOT_PRIVATE_APP_TOKEN = os.environ.get('HUBSPOT_PRIVATE_APP_TOKEN')
 
 DATABASES = {
     "default": {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
+        'NAME': os.environ.get('DB_NAME'),
+        'USER': os.environ.get('DB_USER'),
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
         'HOST': 'localhost',
         'PORT': '3306',
     }
