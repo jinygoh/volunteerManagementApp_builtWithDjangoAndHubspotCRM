@@ -77,6 +77,8 @@ from decouple import Config, RepositoryEnv
 
 config = Config(RepositoryEnv(BASE_DIR / '.env'))
 
+HUBSPOT_PRIVATE_APP_TOKEN = config('HUBSPOT_PRIVATE_APP_TOKEN')
+
 DATABASES = {
     "default": {
         'ENGINE': 'django.db.backends.mysql',
