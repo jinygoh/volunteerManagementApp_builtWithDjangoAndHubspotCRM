@@ -14,7 +14,7 @@ def volunteer_signup(request):
         if form.is_valid():
             volunteer = form.save()
             try:
-                hubspot = HubSpot(api_key=HUBSPOT_API_KEY)
+                hubspot = HubSpot(access_token=HUBSPOT_API_KEY)
                 properties = {
                     "email": volunteer.email,
                     "firstname": volunteer.name,
