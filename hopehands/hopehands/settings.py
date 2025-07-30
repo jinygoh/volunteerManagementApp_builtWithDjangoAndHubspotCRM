@@ -73,7 +73,9 @@ WSGI_APPLICATION = "hopehands.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-from decouple import config
+from decouple import AutoConfig
+
+config = AutoConfig(search_path=BASE_DIR)
 
 DATABASES = {
     "default": {
