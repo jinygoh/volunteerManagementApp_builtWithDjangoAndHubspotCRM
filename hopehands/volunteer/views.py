@@ -4,6 +4,9 @@ from hopehands.hubspot_api import HUBSPOT_API_KEY
 from hubspot import HubSpot
 from hubspot.crm.contacts import SimplePublicObjectInput
 from hubspot.crm.contacts.exceptions import ApiException
+import logging
+
+logger = logging.getLogger(__name__)
 
 def volunteer_signup(request):
     if request.method == 'POST':
@@ -22,9 +25,9 @@ def volunteer_signup(request):
                 api_response = hubspot.crm.contacts.basic_api.create(
                     simple_public_object_input_for_create=simple_public_object_input
                 )
-                print(api_response)
+                logger.info(f"Successfully created contact in HubSpot: {api_response}")
             except ApiException as e:
-                print("Exception when creating contact: %s\n" % e)
+                logger.error("Exception when creating contact in HubSpot", exc_info=True)
             return redirect('success')
     else:
         form = VolunteerForm()
