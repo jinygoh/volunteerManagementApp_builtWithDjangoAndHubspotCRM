@@ -20,7 +20,7 @@ def volunteer_signup(request):
                 }
                 simple_public_object_input = SimplePublicObjectInput(properties=properties)
                 api_response = hubspot.crm.contacts.basic_api.create(
-                    simple_public_object_input=simple_public_object_input
+                    simple_public_object_input_for_create=simple_public_object_input
                 )
                 print(api_response)
             except ApiException as e:
