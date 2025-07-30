@@ -1,0 +1,29 @@
+/* style.css */
+
+body {
+    background-color: #f4f1de;
+    color: #264653;
+    font-family: sans-serif;
+}
+
+.navbar {
+    background-color: #2a9d8f;
+}
+
+.navbar-brand {
+    color: #fff;
+}
+
+.btn-primary {
+    background-color: #2a9d8f;
+    border-color: #2a9d8f;
+}
+
+.btn-primary:hover {
+    background-color: #264653;
+    border-color: #264653;
+}
+
+h1 {
+    color: #2a9d8f;
+}
