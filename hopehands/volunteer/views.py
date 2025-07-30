@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from .forms import VolunteerForm
-from hopehands.hubspot_api import HUBSPOT_API_KEY
+from hopehands.hubspot_api import HUBSPOT_PRIVATE_APP_TOKEN
 from hubspot import HubSpot
 from hubspot.crm.contacts import SimplePublicObjectInput
 from hubspot.crm.contacts.exceptions import ApiException
@@ -14,7 +14,7 @@ def volunteer_signup(request):
         if form.is_valid():
             volunteer = form.save()
             try:
-                hubspot = HubSpot(access_token=HUBSPOT_API_KEY)
+                hubspot = HubSpot(access_token=HUBSPOT_PRIVATE_APP_TOKEN)
                 properties = {
                     "email": volunteer.email,
                     "firstname": volunteer.name,
