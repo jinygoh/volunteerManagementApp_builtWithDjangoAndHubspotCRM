@@ -17,7 +17,7 @@ def volunteer_signup(request):
                 hubspot = HubSpot(access_token=settings.HUBSPOT_PRIVATE_APP_TOKEN)
                 properties = {
                     "email": volunteer.email,
-                    "name": volunteer.name,
+                    "firstname": volunteer.name,
                     "phone": volunteer.phone_number,
                     "lifecyclestage": "lead",
                     "preferred_volunteer_role": volunteer.preferred_volunteer_role,
