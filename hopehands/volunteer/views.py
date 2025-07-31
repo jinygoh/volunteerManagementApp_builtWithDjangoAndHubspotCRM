@@ -22,6 +22,7 @@ def volunteer_signup(request):
                     "lifecyclestage": "lead",
                     "preferred_volunteer_role": volunteer.preferred_volunteer_role,
                     "availability": volunteer.availability,
+                    "how_did_you_hear_about_us": volunteer.how_did_you_hear_about_us,
                 }
                 print("Creating HubSpot contact with properties:", properties)
                 simple_public_object_input = SimplePublicObjectInput(properties=properties)
