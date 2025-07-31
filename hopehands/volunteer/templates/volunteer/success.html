@@ -1,8 +1,12 @@
+<!-- This template extends the base.html template. -->
 {% extends 'volunteer/base.html' %}
 
+<!-- This block overrides the title block in the base template. -->
 {% block title %}Success{% endblock %}
 
+<!-- This block overrides the content block in the base template. -->
 {% block content %}
+    <!-- A confirmation message to the user. -->
     <h1>Thank you for signing up!</h1>
     <p>We will be in touch with you shortly.</p>
 {% endblock %}

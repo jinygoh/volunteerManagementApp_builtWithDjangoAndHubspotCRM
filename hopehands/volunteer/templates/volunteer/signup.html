@@ -1,12 +1,19 @@
+<!-- This template extends the base.html template. -->
 {% extends 'volunteer/base.html' %}
 
+<!-- This block overrides the title block in the base template. -->
 {% block title %}Volunteer Signup{% endblock %}
 
+<!-- This block overrides the content block in the base template. -->
 {% block content %}
     <h1>Volunteer Signup</h1>
+    <!-- The signup form. When submitted, it sends a POST request to the current URL. -->
     <form method="post">
+        <!-- The CSRF token is a security measure to prevent Cross-Site Request Forgery attacks. -->
         {% csrf_token %}
+        <!-- This renders the form fields as paragraphs. 'form' is the form object passed from the view. -->
         {{ form.as_p }}
+        <!-- The submit button for the form. -->
         <button type="submit" class="btn btn-primary">Sign Up</button>
     </form>
 {% endblock %}

@@ -1,20 +1,31 @@
+<!-- This is the base template for the volunteer application. -->
+<!-- It provides the basic HTML structure and includes common elements like the navigation bar and footer. -->
 <!DOCTYPE html>
 <html>
 <head>
+    <!-- The title of the page, which can be overridden by child templates. -->
     <title>{% block title %}HopeHands{% endblock %}</title>
+    <!-- Load the static files tag library. -->
     {% load static %}
+    <!-- Link to the Bootstrap CSS file from a CDN. -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Link to the custom stylesheet for the volunteer application. -->
     <link rel="stylesheet" href="{% static 'volunteer/style.css' %}">
 </head>
 <body>
+    <!-- The navigation bar. -->
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
+            <!-- The brand logo or name. -->
             <a class="navbar-brand" href="#">HopeHands</a>
         </div>
     </nav>
+    <!-- The main content of the page. -->
     <div class="container mt-4">
+        <!-- A block where child templates can insert their content. -->
         {% block content %}{% endblock %}
     </div>
+    <!-- Link to the Bootstrap JavaScript bundle from a CDN. -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>
