@@ -11,10 +11,7 @@ To integrate with HubSpot, you will need to follow these steps:
    - Create a file named `.env` in the root directory of the project.
    - Add the following lines to the `.env` file, replacing the placeholder values with your actual credentials:
      ```
-     HUBSPOT_API_KEY=your-hubspot-api-key
-     DB_NAME=your-db-name
-     DB_USER=your-db-user
-     DB_PASSWORD=your-db-password
+     
      ```
 
 3. **Uncomment the HubSpot integration code:**

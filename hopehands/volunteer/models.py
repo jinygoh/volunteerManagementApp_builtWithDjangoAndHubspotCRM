@@ -6,7 +6,7 @@ class Volunteer(models.Model):
     phone_number = models.CharField(max_length=15)
     preferred_volunteer_role = models.CharField(max_length=100)
     availability = models.CharField(max_length=100)
-    lifecycle_stage = models.CharField(max_length=50, default='Lead')
+    lifecyclestage = models.CharField(max_length=50, default='Lead')
 
     def __str__(self):
         return self.name
