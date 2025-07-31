@@ -1,26 +1,21 @@
-"""
-URL configuration for hopehands project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
-
-from django.contrib import admin
-from django.urls import path, include
+# Import necessary functions from Django.
+from django.contrib import admin  # For the admin site.
+from django.urls import path, include  # For defining URL patterns and including other URLconfs.
+# Import the views from the volunteer app to reference them in the URL patterns.
 from volunteer import views as volunteer_views
 
+# The `urlpatterns` list routes URLs to views.
+# Django checks each URL pattern in order, from top to bottom.
 urlpatterns = [
+    # The URL for the Django admin interface.
     path("admin/", admin.site.urls),
+
+    # The root URL of the site.
+    # This pattern maps the root URL ('') to the `volunteer_signup` view.
+    # The `name='home'` argument gives this URL a name, which can be used to refer to it in templates and other parts of the app.
     path("", volunteer_views.volunteer_signup, name="home"),
+
+    # This pattern includes the URL patterns from the `volunteer` app.
+    # Any URL that starts with 'volunteer/' will be handled by the `volunteer/urls.py` file.
     path('volunteer/', include('volunteer.urls')),
 ]
