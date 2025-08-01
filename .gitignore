@@ -27,7 +27,7 @@ dmypy.json
 *.sublime-workspace
 db.sqlite3
 /media/
-/static/
+# /static/
 .env
 hopehands/Lib/
 hopehands/Scripts/
