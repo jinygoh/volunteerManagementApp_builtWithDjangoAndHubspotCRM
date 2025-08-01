@@ -1,5 +1,0 @@
-The following directories are part of a virtual environment and should be deleted from the repository:
-- hopehands/Lib/
-- hopehands/Scripts/
-
-These directories could not be deleted automatically due to tool limitations. Please remove them manually.
