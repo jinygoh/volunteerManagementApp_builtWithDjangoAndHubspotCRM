@@ -45,3 +45,7 @@ h1 {
     border: 1px solid #ccc;
     border-radius: 4px;
 }
+
+.form-container {
+    background-color: #ffffff;
+}
