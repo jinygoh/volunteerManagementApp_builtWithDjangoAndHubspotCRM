@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Volunteer Details</title>
+</head>
+<body>
+    <h1>Volunteer Details</h1>
+    {% if contact %}
+        <p><strong>ID:</strong> {{ contact.id }}</p>
+        <p><strong>Name:</strong> {{ contact.properties.firstname }} {{ contact.properties.lastname }}</p>
+        <p><strong>Email:</strong> {{ contact.properties.email }}</p>
+        <p><strong>Phone Number:</strong> {{ contact.properties.phone }}</p>
+        <p><strong>Preferred Volunteer Role:</strong> {{ contact.properties.preferred_volunteer_role }}</p>
+        <p><strong>Availability:</strong> {{ contact.properties.availability }}</p>
+        <p><strong>How did you hear about us:</strong> {{ contact.properties.how_did_you_hear_about_us }}</p>
+        <p><strong>Lifecycle Stage:</strong> {{ contact.properties.lifecyclestage }}</p>
+        <p><strong>Created At:</strong> {{ contact.created_at }}</p>
+        <p><strong>Updated At:</strong> {{ contact.updated_at }}</p>
+
+        <a href="{% url 'volunteer_update' contact.id %}">Edit</a>
+        <a href="{% url 'volunteer_delete' contact.id %}">Delete</a>
+    {% else %}
+        <p>Contact not found.</p>
+    {% endif %}
+    <br>
+    <a href="{% url 'volunteer_list' %}">Back to Volunteer List</a>
+</body>
+</html>

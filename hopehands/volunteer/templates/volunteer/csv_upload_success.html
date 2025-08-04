@@ -1,0 +1,39 @@
+{% extends 'volunteer/base.html' %}
+
+{% block title %}CSV Upload Success{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="card-title text-center">CSV Upload Results</h1>
+                {% if response %}
+                    <p><strong>Status:</strong> {{ response.status }}</p>
+                    <p><strong>Results:</strong></p>
+                    <ul>
+                        {% for result in response.results %}
+                            <li>Contact created with ID: {{ result.id }}</li>
+                        {% endfor %}
+                    </ul>
+                    <p><strong>Errors:</strong></p>
+                    {% if response.errors %}
+                        <ul>
+                            {% for error in response.errors %}
+                                <li>{{ error.message }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No errors.</p>
+                    {% endif %}
+                {% else %}
+                    <p>There was an error processing your request.</p>
+                {% endif %}
+                <div class="text-center mt-3">
+                    <a href="{% url 'volunteer_list' %}" class="btn btn-primary">Go to Volunteer List</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

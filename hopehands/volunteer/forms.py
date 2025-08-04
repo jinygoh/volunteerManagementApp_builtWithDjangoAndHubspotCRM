@@ -12,3 +12,6 @@ class VolunteerForm(forms.ModelForm):
             'availability',
             'how_did_you_hear_about_us'
         ]
+
+class CSVUploadForm(forms.Form):
+    csv_file = forms.FileField()

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Volunteer List</title>
+</head>
+<body>
+    <h1>Volunteer List</h1>
+    <a href="{% url 'signup' %}">Add New Volunteer</a>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone Number</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for contact in contacts %}
+            <tr>
+                <td>{{ contact.id }}</td>
+                <td>{{ contact.properties.firstname }} {{ contact.properties.lastname }}</td>
+                <td>{{ contact.properties.email }}</td>
+                <td>{{ contact.properties.phone }}</td>
+                <td>
+                    <a href="{% url 'volunteer_detail' contact.id %}">View</a>
+                    <a href="{% url 'volunteer_update' contact.id %}">Edit</a>
+                    <a href="{% url 'volunteer_delete' contact.id %}">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
