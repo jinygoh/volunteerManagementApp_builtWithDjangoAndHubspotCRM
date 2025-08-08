@@ -173,7 +173,7 @@ class HubspotAPI:
         try:
             # Make the batch API call to create the contacts
             api_response = self.client.crm.contacts.batch_api.create(
-                batch_input_simple_public_object_input={"inputs": inputs}
+                batch_input_simple_public_object_batch_input_for_create={"inputs": inputs}
             )
             return api_response
         except ApiException as e:
