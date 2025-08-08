@@ -13,7 +13,7 @@ HubSpot contacts.
 
 from django.conf import settings
 from hubspot import HubSpot
-from hubspot.crm.contacts import SimplePublicObjectInput
+from hubspot.crm.contacts import SimplePublicObjectInput, PublicObjectSearchRequest, Filter, FilterGroup
 from hubspot.crm.contacts.exceptions import ApiException
 import logging
 
@@ -83,8 +83,12 @@ class HubspotAPI:
                   the API call fails.
         """
         try:
-            # Get a page of contacts (default limit is 10, max is 100)
-            api_response = self.client.crm.contacts.basic_api.get_page(limit=100)
+            # Define the properties we want to retrieve for the list view
+            properties = ["firstname", "lastname", "email", "phone"]
+            # Get a page of contacts, specifying the properties
+            api_response = self.client.crm.contacts.basic_api.get_page(
+                limit=100, properties=properties
+            )
             # The contacts are in the 'results' attribute of the response
             return api_response.results
         except ApiException as e:
@@ -104,8 +108,16 @@ class HubspotAPI:
                                         occurs.
         """
         try:
-            # Get the contact by its ID
-            contact = self.client.crm.contacts.basic_api.get_by_id(contact_id)
+            # Define the properties we want to retrieve
+            properties = [
+                "firstname", "lastname", "email", "phone",
+                "lifecyclestage", "preferred_volunteer_role",
+                "availability", "how_did_you_hear_about_us"
+            ]
+            # Get the contact by its ID, specifying the properties
+            contact = self.client.crm.contacts.basic_api.get_by_id(
+                contact_id, properties=properties
+            )
             return contact
         except ApiException as e:
             logger.error(f"Exception when getting contact {contact_id} from HubSpot", exc_info=True)
@@ -179,3 +191,41 @@ class HubspotAPI:
         except ApiException as e:
             logger.error("Exception when batch creating contacts in HubSpot", exc_info=True)
             return None
+
+    def search_contacts(self, query):
+        """
+        Searches for contacts by name in HubSpot.
+
+        Args:
+            query (str): The search query (e.g., a first or last name).
+
+        Returns:
+            list: A list of HubSpot contact objects that match the search query.
+                  Returns an empty list if an error occurs.
+        """
+        try:
+            # Create two filters, one for firstname and one for lastname
+            filter_firstname = Filter(
+                property_name="firstname", operator="CONTAINS_TOKEN", value=f"*{query}*"
+            )
+            filter_lastname = Filter(
+                property_name="lastname", operator="CONTAINS_TOKEN", value=f"*{query}*"
+            )
+            # Create a filter group with an OR condition
+            filter_group = FilterGroup(filters=[filter_firstname, filter_lastname])
+
+            # Create the search request object
+            search_request = PublicObjectSearchRequest(
+                filter_groups=[filter_group],
+                properties=["firstname", "lastname", "email", "phone"],
+                limit=100
+            )
+
+            # Perform the search
+            api_response = self.client.crm.contacts.search_api.do_search(
+                public_object_search_request=search_request
+            )
+            return api_response.results
+        except ApiException as e:
+            logger.error(f"Exception when searching for contacts with query '{query}'", exc_info=True)
+            return []

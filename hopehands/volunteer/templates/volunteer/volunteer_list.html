@@ -5,6 +5,19 @@
 {% block content %}
 <div class="container">
     <h1 class="text-center my-4">Volunteer List</h1>
+
+    <!-- Search Form -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-8 col-lg-6">
+            <form method="get" action="{% url 'volunteer_list' %}">
+                <div class="input-group">
+                    <input type="text" name="q" class="form-control" placeholder="Search by name..." value="{{ query|default:'' }}">
+                    <button class="btn btn-outline-secondary" type="submit">Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="row mb-3">
         <div class="col text-end">
             <a href="{% url 'signup' %}" class="btn btn-primary">Add New Volunteer</a>
@@ -37,7 +50,13 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="5" class="text-center">No volunteers found.</td>
+                        <td colspan="5" class="text-center">
+                            {% if query %}
+                                No volunteers found for your search: "{{ query }}"
+                            {% else %}
+                                No volunteers found.
+                            {% endif %}
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>

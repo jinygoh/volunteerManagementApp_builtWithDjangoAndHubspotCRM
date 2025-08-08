@@ -1,28 +1,46 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Volunteer Details</title>
-</head>
-<body>
-    <h1>Volunteer Details</h1>
-    {% if contact %}
-        <p><strong>ID:</strong> {{ contact.id }}</p>
-        <p><strong>Name:</strong> {{ contact.properties.firstname }} {{ contact.properties.lastname }}</p>
-        <p><strong>Email:</strong> {{ contact.properties.email }}</p>
-        <p><strong>Phone Number:</strong> {{ contact.properties.phone }}</p>
-        <p><strong>Preferred Volunteer Role:</strong> {{ contact.properties.preferred_volunteer_role }}</p>
-        <p><strong>Availability:</strong> {{ contact.properties.availability }}</p>
-        <p><strong>How did you hear about us:</strong> {{ contact.properties.how_did_you_hear_about_us }}</p>
-        <p><strong>Lifecycle Stage:</strong> {{ contact.properties.lifecyclestage }}</p>
-        <p><strong>Created At:</strong> {{ contact.created_at }}</p>
-        <p><strong>Updated At:</strong> {{ contact.updated_at }}</p>
+{% extends 'volunteer/base.html' %}
 
-        <a href="{% url 'volunteer_update' contact.id %}">Edit</a>
-        <a href="{% url 'volunteer_delete' contact.id %}">Delete</a>
+{% block title %}Volunteer Details{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="text-center my-4">Volunteer Details</h1>
+    {% if contact %}
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">{{ contact.properties.firstname }} {{ contact.properties.lastname|default:'' }}</h5>
+                    <p class="card-text"><strong>ID:</strong> {{ contact.id }}</p>
+                    <p class="card-text"><strong>Email:</strong> {{ contact.properties.email|default:'N/A' }}</p>
+                    <p class="card-text"><strong>Phone Number:</strong> {{ contact.properties.phone|default:'N/A' }}</p>
+                    <p class="card-text"><strong>Preferred Volunteer Role:</strong> {{ contact.properties.preferred_volunteer_role|default:'N/A' }}</p>
+                    <p class="card-text"><strong>Availability:</strong> {{ contact.properties.availability|default:'N/A' }}</p>
+                    <p class="card-text"><strong>How did you hear about us:</strong> {{ contact.properties.how_did_you_hear_about_us|default:'N/A' }}</p>
+                    <p class="card-text"><strong>Lifecycle Stage:</strong> {{ contact.properties.lifecyclestage|default:'N/A' }}</p>
+                    <hr>
+                    <p class="card-text text-muted">Created: {{ contact.created_at|date:"F j, Y, P" }}</p>
+                    <p class="card-text text-muted">Last Updated: {{ contact.updated_at|date:"F j, Y, P" }}</p>
+                    <div class="mt-3">
+                        <a href="{% url 'volunteer_update' contact.id %}" class="btn btn-warning">Edit</a>
+                        <a href="{% url 'volunteer_delete' contact.id %}" class="btn btn-danger">Delete</a>
+                        <a href="{% url 'volunteer_list' %}" class="btn btn-secondary">Back to List</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     {% else %}
-        <p>Contact not found.</p>
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="alert alert-warning text-center" role="alert">
+                Contact not found.
+            </div>
+            <div class="text-center">
+                <a href="{% url 'volunteer_list' %}" class="btn btn-secondary">Back to Volunteer List</a>
+            </div>
+        </div>
+    </div>
     {% endif %}
-    <br>
-    <a href="{% url 'volunteer_list' %}">Back to Volunteer List</a>
-</body>
-</html>
+</div>
+{% endblock %}

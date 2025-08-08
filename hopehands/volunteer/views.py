@@ -71,14 +71,23 @@ def success(request):
 def volunteer_list(request):
     """
     Displays a list of all volunteers.
-    It fetches all contacts from HubSpot using the HubspotAPI service and
-    passes them to the template to be displayed in a table.
+    If a search query is provided in the GET request, it searches for contacts
+    by name. Otherwise, it fetches all contacts from HubSpot.
 
     Template: 'volunteer/volunteer_list.html'
     """
     hubspot_api = HubspotAPI()
-    contacts = hubspot_api.get_all_contacts()
-    return render(request, 'volunteer/volunteer_list.html', {'contacts': contacts})
+    # Get the search query from the 'q' GET parameter
+    query = request.GET.get('q')
+
+    if query:
+        # If there is a query, search for contacts
+        contacts = hubspot_api.search_contacts(query)
+    else:
+        # Otherwise, get all contacts
+        contacts = hubspot_api.get_all_contacts()
+
+    return render(request, 'volunteer/volunteer_list.html', {'contacts': contacts, 'query': query})
 
 def volunteer_detail(request, contact_id):
     """
