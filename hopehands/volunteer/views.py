@@ -157,6 +157,11 @@ def volunteer_update(request, contact_id):
     """
     hubspot_api = HubspotAPI()
     contact = hubspot_api.get_contact(contact_id)
+
+    # Handle case where contact is not found
+    if not contact:
+        return render(request, 'volunteer/volunteer_detail.html', {'contact': None})
+
     if request.method == 'POST':
         form = VolunteerForm(request.POST)
         if form.is_valid():
@@ -197,6 +202,11 @@ def volunteer_delete(request, contact_id):
     """
     hubspot_api = HubspotAPI()
     contact = hubspot_api.get_contact(contact_id)
+
+    # Handle case where contact is not found
+    if not contact:
+        return render(request, 'volunteer/volunteer_detail.html', {'contact': None})
+
     if request.method == 'POST':
         # Delete from HubSpot
         hubspot_api.delete_contact(contact_id)
@@ -206,8 +216,8 @@ def volunteer_delete(request, contact_id):
             # Find the local volunteer by their email address
             local_volunteer = Volunteer.objects.get(email=contact.properties.get('email'))
             local_volunteer.delete()
-        except Volunteer.DoesNotExist:
-            # If the contact is not in the local DB, we can ignore it
+        except (Volunteer.DoesNotExist, AttributeError):
+            # If the contact is not in the local DB, or if contact has no properties, we can ignore it
             pass
 
         # Redirect to the volunteer list after deletion
