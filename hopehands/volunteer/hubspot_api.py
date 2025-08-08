@@ -205,18 +205,21 @@ class HubspotAPI:
         """
         try:
             # Create two filters, one for firstname and one for lastname
+            # The CONTAINS_TOKEN operator looks for whole words, so we don't need wildcards.
             filter_firstname = Filter(
-                property_name="firstname", operator="CONTAINS_TOKEN", value=f"*{query}*"
+                property_name="firstname", operator="CONTAINS_TOKEN", value=query
             )
             filter_lastname = Filter(
-                property_name="lastname", operator="CONTAINS_TOKEN", value=f"*{query}*"
+                property_name="lastname", operator="CONTAINS_TOKEN", value=query
             )
-            # Create a filter group with an OR condition
-            filter_group = FilterGroup(filters=[filter_firstname, filter_lastname])
+            # To create an OR search, we need to put each filter in its own FilterGroup.
+            # The search request will then OR the FilterGroups together.
+            filter_group_firstname = FilterGroup(filters=[filter_firstname])
+            filter_group_lastname = FilterGroup(filters=[filter_lastname])
 
-            # Create the search request object
+            # Create the search request object with both filter groups
             search_request = PublicObjectSearchRequest(
-                filter_groups=[filter_group],
+                filter_groups=[filter_group_firstname, filter_group_lastname],
                 properties=["firstname", "lastname", "email", "phone"],
                 limit=100
             )
