@@ -204,22 +204,26 @@ class HubspotAPI:
                   Returns an empty list if an error occurs.
         """
         try:
-            # Create two filters, one for firstname and one for lastname
-            # The CONTAINS_TOKEN operator looks for whole words, so we don't need wildcards.
-            filter_firstname = Filter(
-                property_name="firstname", operator="CONTAINS_TOKEN", value=query
-            )
-            filter_lastname = Filter(
-                property_name="lastname", operator="CONTAINS_TOKEN", value=query
-            )
-            # To create an OR search, we need to put each filter in its own FilterGroup.
-            # The search request will then OR the FilterGroups together.
+            # Create filters for each property we want to search
+            filter_firstname = Filter(property_name="firstname", operator="CONTAINS_TOKEN", value=query)
+            filter_lastname = Filter(property_name="lastname", operator="CONTAINS_TOKEN", value=query)
+            filter_email = Filter(property_name="email", operator="EQ", value=query)
+            filter_phone = Filter(property_name="phone", operator="EQ", value=query)
+
+            # To create an OR search, we put each filter in its own FilterGroup.
             filter_group_firstname = FilterGroup(filters=[filter_firstname])
             filter_group_lastname = FilterGroup(filters=[filter_lastname])
+            filter_group_email = FilterGroup(filters=[filter_email])
+            filter_group_phone = FilterGroup(filters=[filter_phone])
 
-            # Create the search request object with both filter groups
+            # Create the search request object with all filter groups
             search_request = PublicObjectSearchRequest(
-                filter_groups=[filter_group_firstname, filter_group_lastname],
+                filter_groups=[
+                    filter_group_firstname,
+                    filter_group_lastname,
+                    filter_group_email,
+                    filter_group_phone
+                ],
                 properties=["firstname", "lastname", "email", "phone"],
                 limit=100
             )
