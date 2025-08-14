@@ -20,6 +20,12 @@ class Volunteer(models.Model):
     This model's fields correspond to the fields in the volunteer signup form.
     The data is saved here before being sent to the HubSpot CRM.
     """
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    )
+
     # The volunteer's full name.
     name = models.CharField(max_length=100)
     # The volunteer's email address. This should be unique.
@@ -32,6 +38,10 @@ class Volunteer(models.Model):
     availability = models.CharField(max_length=100)
     # How the volunteer heard about the organization. This field is optional.
     how_did_you_hear_about_us = models.CharField(max_length=200, blank=True, null=True)
+    # The application status of the volunteer.
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    # The ID of the corresponding contact in HubSpot, once created.
+    hubspot_id = models.CharField(max_length=100, blank=True, null=True, unique=True)
 
     def __str__(self):
         """

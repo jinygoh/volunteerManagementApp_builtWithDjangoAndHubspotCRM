@@ -32,6 +32,7 @@
                         <th>Name</th>
                         <th>Email</th>
                         <th>Phone Number</th>
+                        <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -39,9 +40,10 @@
                     {% for contact in contacts %}
                     <tr>
                         <td>{{ contact.id }}</td>
-                        <td>{{ contact.properties.firstname }} {{ contact.properties.lastname }}</td>
-                        <td>{{ contact.properties.email }}</td>
-                        <td>{{ contact.properties.phone }}</td>
+                        <td>{{ contact.name }}</td>
+                        <td>{{ contact.email }}</td>
+                        <td>{{ contact.phone_number }}</td>
+                        <td><span class="badge bg-secondary">{{ contact.status }}</span></td>
                         <td>
                             <a href="{% url 'volunteer_detail' contact.id %}" class="btn btn-sm btn-info">View</a>
                             <a href="{% url 'volunteer_update' contact.id %}" class="btn btn-sm btn-warning">Edit</a>

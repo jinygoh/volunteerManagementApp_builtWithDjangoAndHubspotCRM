@@ -12,6 +12,7 @@ on volunteers, as well as the batch CSV upload functionality.
 """
 
 from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
 from .forms import VolunteerForm, CSVUploadForm
 from .hubspot_api import HubspotAPI
 from .models import Volunteer
@@ -38,19 +39,8 @@ def volunteer_signup(request):
         form = VolunteerForm(request.POST)
         # Check if the form data is valid
         if form.is_valid():
-            # Save the new volunteer to the local database
-            volunteer = form.save()
-            # Instantiate our HubSpot API service
-            hubspot_api = HubspotAPI()
-            # Create the contact in HubSpot
-            hubspot_api.create_contact(
-                email=volunteer.email,
-                name=volunteer.name,
-                phone_number=volunteer.phone_number,
-                preferred_volunteer_role=volunteer.preferred_volunteer_role,
-                availability=volunteer.availability,
-                how_did_you_hear_about_us=volunteer.how_did_you_hear_about_us,
-            )
+            # Save the new volunteer to the local database. The status will default to 'pending'.
+            form.save()
             # Redirect to the success page
             return redirect('success')
     # If it's a GET request, create an empty form
@@ -68,39 +58,37 @@ def success(request):
     """
     return render(request, 'volunteer/success.html')
 
+@login_required
 def volunteer_list(request):
     """
-    Displays a list of all volunteers.
-    If a search query is provided in the GET request, it searches for contacts
-    by name. Otherwise, it fetches all contacts from HubSpot.
+    Displays a list of all volunteers from the local database.
+    If a search query is provided in the GET request, it filters volunteers by name.
 
     Template: 'volunteer/volunteer_list.html'
     """
-    hubspot_api = HubspotAPI()
-    # Get the search query from the 'q' GET parameter
     query = request.GET.get('q')
-
     if query:
-        # If there is a query, search for contacts
-        contacts = hubspot_api.search_contacts(query)
+        # If there is a query, search for local volunteers
+        contacts = Volunteer.objects.filter(name__icontains=query)
     else:
-        # Otherwise, get all contacts
-        contacts = hubspot_api.get_all_contacts()
+        # Otherwise, get all local volunteers
+        contacts = Volunteer.objects.all()
 
     return render(request, 'volunteer/volunteer_list.html', {'contacts': contacts, 'query': query})
 
-def volunteer_detail(request, contact_id):
+@login_required
+def volunteer_detail(request, volunteer_id):
     """
-    Displays the details of a single volunteer.
-    It takes a contact_id, fetches the corresponding contact from HubSpot,
-    and displays their properties.
+    Displays the details of a single volunteer from the local database.
+    It takes a volunteer_id, fetches the corresponding Volunteer object,
+    and displays its details.
 
     Template: 'volunteer/volunteer_detail.html'
     """
-    hubspot_api = HubspotAPI()
-    contact = hubspot_api.get_contact(contact_id)
-    return render(request, 'volunteer/volunteer_detail.html', {'contact': contact})
+    volunteer = get_object_or_404(Volunteer, pk=volunteer_id)
+    return render(request, 'volunteer/volunteer_detail.html', {'volunteer': volunteer})
 
+@login_required
 def volunteer_csv_upload(request):
     """
     Handles the batch upload of volunteers from a CSV file.
@@ -122,106 +110,121 @@ def volunteer_csv_upload(request):
             # Use DictReader to parse the CSV into a list of dictionaries
             reader = csv.DictReader(io_string)
 
-            contacts_to_create = []
+            volunteers_created = 0
+            errors = []
             for row in reader:
-                # Map CSV columns to HubSpot properties
-                contacts_to_create.append({
-                    "email": row.get('email'),
-                    "firstname": row.get('name'),
-                    "phone": row.get('phone_number'),
-                    "preferred_volunteer_role": row.get('preferred_volunteer_role'),
-                    "availability": row.get('availability'),
-                    "how_did_you_hear_about_us": row.get('how_did_you_hear_about_us'),
-                })
+                try:
+                    Volunteer.objects.create(
+                        name=row.get('name'),
+                        email=row.get('email'),
+                        phone_number=row.get('phone_number'),
+                        preferred_volunteer_role=row.get('preferred_volunteer_role'),
+                        availability=row.get('availability'),
+                        how_did_you_hear_about_us=row.get('how_did_you_hear_about_us'),
+                        # Status will default to 'pending'
+                    )
+                    volunteers_created += 1
+                except Exception as e:
+                    errors.append(f"Could not create volunteer from row: {row}. Error: {e}")
 
-            if contacts_to_create:
-                hubspot_api = HubspotAPI()
-                # Call the batch create method
-                api_response = hubspot_api.batch_create_contacts(contacts_to_create)
-                # Render a success page with the API response
-                return render(request, 'volunteer/csv_upload_success.html', {'response': api_response})
+            # Render a success page with the results
+            return render(request, 'volunteer/csv_upload_success.html', {
+                'volunteers_created': volunteers_created,
+                'errors': errors
+            })
 
     else:
         form = CSVUploadForm()
     return render(request, 'volunteer/volunteer_csv_upload.html', {'form': form})
 
-def volunteer_update(request, contact_id):
+@login_required
+def volunteer_update(request, volunteer_id):
     """
-    Handles the editing of an existing volunteer.
-    - On GET, it fetches the contact's data from HubSpot and displays it in a
-      pre-filled form.
-    - On POST, it validates the submitted data and, if valid, updates the
-      contact in HubSpot.
+    Handles the editing of an existing volunteer from the local database.
+    - On GET, it displays the volunteer's data in a form.
+    - On POST, it updates the volunteer's data in the local database.
+    If the volunteer is already approved, it also updates the contact in HubSpot.
 
     Template: 'volunteer/volunteer_update.html'
     """
-    hubspot_api = HubspotAPI()
-    contact = hubspot_api.get_contact(contact_id)
-
-    # Handle case where contact is not found
-    if not contact:
-        return render(request, 'volunteer/volunteer_detail.html', {'contact': None})
-
+    volunteer = get_object_or_404(Volunteer, pk=volunteer_id)
     if request.method == 'POST':
-        form = VolunteerForm(request.POST)
+        form = VolunteerForm(request.POST, instance=volunteer)
         if form.is_valid():
-            # Prepare the properties for the HubSpot API
-            properties = {
-                "email": form.cleaned_data['email'],
-                "firstname": form.cleaned_data['name'],
-                "phone": form.cleaned_data['phone_number'],
-                "preferred_volunteer_role": form.cleaned_data['preferred_volunteer_role'],
-                "availability": form.cleaned_data['availability'],
-                "how_did_you_hear_about_us": form.cleaned_data['how_did_you_hear_about_us'],
-            }
-            # Update the contact in HubSpot
-            hubspot_api.update_contact(contact_id, properties)
-            # Redirect to the detail page for the updated contact
-            return redirect('volunteer_detail', contact_id=contact_id)
-    else:
-        # Pre-fill the form with the contact's existing data
-        initial_data = {
-            'name': contact.properties.get('firstname', ''),
-            'email': contact.properties.get('email', ''),
-            'phone_number': contact.properties.get('phone', ''),
-            'preferred_volunteer_role': contact.properties.get('preferred_volunteer_role', ''),
-            'availability': contact.properties.get('availability', ''),
-            'how_did_you_hear_about_us': contact.properties.get('how_did_you_hear_about_us', ''),
-        }
-        form = VolunteerForm(initial=initial_data)
-    return render(request, 'volunteer/volunteer_update.html', {'form': form, 'contact_id': contact_id})
+            updated_volunteer = form.save()
 
-def volunteer_delete(request, contact_id):
+            # If the volunteer is approved and has a HubSpot ID, update their HubSpot contact.
+            if updated_volunteer.status == 'approved' and updated_volunteer.hubspot_id:
+                hubspot_api = HubspotAPI()
+                properties = {
+                    "email": updated_volunteer.email,
+                    "firstname": updated_volunteer.name,
+                    "phone": updated_volunteer.phone_number,
+                    "preferred_volunteer_role": updated_volunteer.preferred_volunteer_role,
+                    "availability": updated_volunteer.availability,
+                    "how_did_you_hear_about_us": updated_volunteer.how_did_you_hear_about_us,
+                }
+                hubspot_api.update_contact(updated_volunteer.hubspot_id, properties)
+
+            return redirect('volunteer_detail', volunteer_id=volunteer.id)
+    else:
+        form = VolunteerForm(instance=volunteer)
+    return render(request, 'volunteer/volunteer_update.html', {'form': form, 'volunteer': volunteer})
+
+@login_required
+def volunteer_delete(request, volunteer_id):
     """
-    Handles the deletion of a volunteer.
+    Handles the deletion of a volunteer from the local database.
     - On GET, it displays a confirmation page.
-    - On POST, it deletes the contact from HubSpot and also from the local
-      database if it exists.
+    - On POST, it deletes the volunteer from the local database.
 
     Template: 'volunteer/volunteer_delete_confirm.html'
     """
-    hubspot_api = HubspotAPI()
-    contact = hubspot_api.get_contact(contact_id)
-
-    # Handle case where contact is not found
-    if not contact:
-        return render(request, 'volunteer/volunteer_detail.html', {'contact': None})
-
+    volunteer = get_object_or_404(Volunteer, pk=volunteer_id)
     if request.method == 'POST':
-        # Delete from HubSpot
-        hubspot_api.delete_contact(contact_id)
-
-        # Also delete from the local database
-        try:
-            # Find the local volunteer by their email address
-            local_volunteer = Volunteer.objects.get(email=contact.properties.get('email'))
-            local_volunteer.delete()
-        except (Volunteer.DoesNotExist, AttributeError):
-            # If the contact is not in the local DB, or if contact has no properties, we can ignore it
-            pass
-
-        # Redirect to the volunteer list after deletion
+        volunteer.delete()
         return redirect('volunteer_list')
+    return render(request, 'volunteer/volunteer_delete_confirm.html', {'volunteer': volunteer})
 
-    # On GET, show the confirmation page
-    return render(request, 'volunteer/volunteer_delete_confirm.html', {'contact': contact})
+@login_required
+def volunteer_approve(request, volunteer_id):
+    """
+    Approves a volunteer application.
+    This view changes the volunteer's status to 'approved' and creates a
+    corresponding contact in HubSpot.
+    """
+    if request.method == 'POST':
+        volunteer = get_object_or_404(Volunteer, pk=volunteer_id)
+        volunteer.status = 'approved'
+        volunteer.save()
+
+        # Create the contact in HubSpot
+        hubspot_api = HubspotAPI()
+        api_response = hubspot_api.create_contact(
+            email=volunteer.email,
+            name=volunteer.name,
+            phone_number=volunteer.phone_number,
+            preferred_volunteer_role=volunteer.preferred_volunteer_role,
+            availability=volunteer.availability,
+            how_did_you_hear_about_us=volunteer.how_did_you_hear_about_us,
+        )
+        # Save the HubSpot ID to the local volunteer record
+        if api_response:
+            volunteer.hubspot_id = api_response.id
+            volunteer.save()
+
+        return redirect('volunteer_list')
+    return redirect('volunteer_list')
+
+@login_required
+def volunteer_reject(request, volunteer_id):
+    """
+    Rejects a volunteer application.
+    This view changes the volunteer's status to 'rejected'.
+    """
+    if request.method == 'POST':
+        volunteer = get_object_or_404(Volunteer, pk=volunteer_id)
+        volunteer.status = 'rejected'
+        volunteer.save()
+        return redirect('volunteer_list')
+    return redirect('volunteer_list')

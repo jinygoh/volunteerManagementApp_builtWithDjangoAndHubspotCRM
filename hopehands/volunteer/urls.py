@@ -22,12 +22,15 @@ urlpatterns = [
     # URL for the list of all volunteers.
     path('list/', views.volunteer_list, name='volunteer_list'),
     # URL for viewing the details of a single volunteer.
-    # The <int:contact_id> part is a path converter that captures an integer from the URL.
-    path('contact/<int:contact_id>/', views.volunteer_detail, name='volunteer_detail'),
+    path('volunteer/<int:volunteer_id>/', views.volunteer_detail, name='volunteer_detail'),
     # URL for updating an existing volunteer.
-    path('contact/<int:contact_id>/update/', views.volunteer_update, name='volunteer_update'),
+    path('volunteer/<int:volunteer_id>/update/', views.volunteer_update, name='volunteer_update'),
     # URL for deleting an existing volunteer.
-    path('contact/<int:contact_id>/delete/', views.volunteer_delete, name='volunteer_delete'),
+    path('volunteer/<int:volunteer_id>/delete/', views.volunteer_delete, name='volunteer_delete'),
+    # URL for approving a volunteer application.
+    path('volunteer/<int:volunteer_id>/approve/', views.volunteer_approve, name='volunteer_approve'),
+    # URL for rejecting a volunteer application.
+    path('volunteer/<int:volunteer_id>/reject/', views.volunteer_reject, name='volunteer_reject'),
     # URL for the CSV upload page.
     path('upload-csv/', views.volunteer_csv_upload, name='volunteer_csv_upload'),
 ]

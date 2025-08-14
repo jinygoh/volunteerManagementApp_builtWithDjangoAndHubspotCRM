@@ -5,25 +5,40 @@
 {% block content %}
 <div class="container">
     <h1 class="text-center my-4">Volunteer Details</h1>
-    {% if contact %}
+    {% if volunteer %}
     <div class="row justify-content-center">
         <div class="col-md-8 col-lg-6">
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title">{{ contact.properties.firstname }} {{ contact.properties.lastname|default:'' }}</h5>
-                    <p class="card-text"><strong>ID:</strong> {{ contact.id }}</p>
-                    <p class="card-text"><strong>Email:</strong> {{ contact.properties.email|default:'N/A' }}</p>
-                    <p class="card-text"><strong>Phone Number:</strong> {{ contact.properties.phone|default:'N/A' }}</p>
-                    <p class="card-text"><strong>Preferred Volunteer Role:</strong> {{ contact.properties.preferred_volunteer_role|default:'N/A' }}</p>
-                    <p class="card-text"><strong>Availability:</strong> {{ contact.properties.availability|default:'N/A' }}</p>
-                    <p class="card-text"><strong>How did you hear about us:</strong> {{ contact.properties.how_did_you_hear_about_us|default:'N/A' }}</p>
-                    <p class="card-text"><strong>Lifecycle Stage:</strong> {{ contact.properties.lifecyclestage|default:'N/A' }}</p>
+                    <h5 class="card-title">{{ volunteer.name }}</h5>
+                    <p class="card-text"><strong>Status:</strong> <span class="badge bg-primary">{{ volunteer.status|title }}</span></p>
                     <hr>
-                    <p class="card-text text-muted">Created: {{ contact.created_at|date:"F j, Y, P" }}</p>
-                    <p class="card-text text-muted">Last Updated: {{ contact.updated_at|date:"F j, Y, P" }}</p>
+                    <p class="card-text"><strong>ID:</strong> {{ volunteer.id }}</p>
+                    <p class="card-text"><strong>Email:</strong> {{ volunteer.email|default:'N/A' }}</p>
+                    <p class="card-text"><strong>Phone Number:</strong> {{ volunteer.phone_number|default:'N/A' }}</p>
+                    <p class="card-text"><strong>Preferred Volunteer Role:</strong> {{ volunteer.preferred_volunteer_role|default:'N/A' }}</p>
+                    <p class="card-text"><strong>Availability:</strong> {{ volunteer.availability|default:'N/A' }}</p>
+                    <p class="card-text"><strong>How did you hear about us:</strong> {{ volunteer.how_did_you_hear_about_us|default:'N/A' }}</p>
+
+                    {% if volunteer.status == 'pending' %}
+                    <hr>
+                    <div class="my-3">
+                        <strong>Actions:</strong>
+                        <form action="{% url 'volunteer_approve' volunteer.id %}" method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success">Approve</button>
+                        </form>
+                        <form action="{% url 'volunteer_reject' volunteer.id %}" method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">Reject</button>
+                        </form>
+                    </div>
+                    {% endif %}
+
+                    <hr>
                     <div class="mt-3">
-                        <a href="{% url 'volunteer_update' contact.id %}" class="btn btn-warning">Edit</a>
-                        <a href="{% url 'volunteer_delete' contact.id %}" class="btn btn-danger">Delete</a>
+                        <a href="{% url 'volunteer_update' volunteer.id %}" class="btn btn-warning">Edit</a>
+                        <a href="{% url 'volunteer_delete' volunteer.id %}" class="btn btn-danger">Delete</a>
                         <a href="{% url 'volunteer_list' %}" class="btn btn-secondary">Back to List</a>
                     </div>
                 </div>
@@ -34,7 +49,7 @@
     <div class="row justify-content-center">
         <div class="col-md-8 col-lg-6">
             <div class="alert alert-warning text-center" role="alert">
-                Contact not found.
+                Volunteer not found.
             </div>
             <div class="text-center">
                 <a href="{% url 'volunteer_list' %}" class="btn btn-secondary">Back to Volunteer List</a>

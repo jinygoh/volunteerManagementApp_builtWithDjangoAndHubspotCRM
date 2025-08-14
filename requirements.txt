@@ -1,5 +1,6 @@
 django
 hubspot-api-client
-mysqlclient
+mysql-connector-python
 python-decouple
 dotenv
+djangorestframework

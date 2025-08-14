@@ -3,34 +3,30 @@
 {% block title %}CSV Upload Success{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        <div class="card">
-            <div class="card-body">
-                <h1 class="card-title text-center">CSV Upload Results</h1>
-                {% if response %}
-                    <p><strong>Status:</strong> {{ response.status }}</p>
-                    <p><strong>Results:</strong></p>
-                    <ul>
-                        {% for result in response.results %}
-                            <li>Contact created with ID: {{ result.id }}</li>
-                        {% endfor %}
-                    </ul>
-                    <p><strong>Errors:</strong></p>
-                    {% if response.errors %}
-                        <ul>
-                            {% for error in response.errors %}
-                                <li>{{ error.message }}</li>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card mt-4">
+                <div class="card-header text-white bg-success">
+                    <h4 class="mb-0">CSV Import Summary</h4>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Successfully created <strong>{{ volunteers_created }}</strong> new volunteer application(s).</p>
+
+                    {% if errors %}
+                        <hr>
+                        <h5 class="text-danger">Import Errors</h5>
+                        <p>The following rows could not be imported:</p>
+                        <ul class="list-group">
+                            {% for error in errors %}
+                                <li class="list-group-item list-group-item-danger">{{ error }}</li>
                             {% endfor %}
                         </ul>
-                    {% else %}
-                        <p>No errors.</p>
                     {% endif %}
-                {% else %}
-                    <p>There was an error processing your request.</p>
-                {% endif %}
-                <div class="text-center mt-3">
-                    <a href="{% url 'volunteer_list' %}" class="btn btn-primary">Go to Volunteer List</a>
+
+                    <hr>
+                    <a href="{% url 'volunteer_list' %}" class="btn btn-primary">View Volunteer List</a>
+                    <a href="{% url 'volunteer_csv_upload' %}" class="btn btn-secondary">Upload Another File</a>
                 </div>
             </div>
         </div>

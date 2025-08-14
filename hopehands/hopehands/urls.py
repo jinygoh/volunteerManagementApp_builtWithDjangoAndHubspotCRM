@@ -17,10 +17,18 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.auth import views as auth_views
 from volunteer import views as volunteer_views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", volunteer_views.volunteer_signup, name="home"),
+    path("accounts/login/", auth_views.LoginView.as_view(template_name="volunteer/login.html"), name="login"),
+    path("accounts/logout/", auth_views.LogoutView.as_view(next_page="login"), name="logout"),
+
+    # API URLs
+    path('api/', include('volunteer.api_urls')),
+
+    # Frontend URLs
+    path("", volunteer_views.volunteer_list, name="home"), # Change home to volunteer list
     path('volunteer/', include('volunteer.urls')),
 ]
