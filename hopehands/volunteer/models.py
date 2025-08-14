@@ -38,9 +38,10 @@ class Volunteer(models.Model):
     availability = models.CharField(max_length=100)
     # How the volunteer heard about the organization. This field is optional.
     how_did_you_hear_about_us = models.CharField(max_length=200, blank=True, null=True)
-    # The application status of the volunteer.
+    # The application status of the volunteer, used in the admin approval workflow.
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
-    # The ID of the corresponding contact in HubSpot, once created.
+    # Stores the HubSpot Contact ID after a volunteer is approved and synced.
+    # This is crucial for updating the correct contact in HubSpot later.
     hubspot_id = models.CharField(max_length=100, blank=True, null=True, unique=True)
 
     def __str__(self):

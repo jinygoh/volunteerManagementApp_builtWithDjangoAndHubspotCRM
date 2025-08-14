@@ -11,22 +11,25 @@ from .hubspot_api import HubspotAPI
 
 class VolunteerViewSet(viewsets.ModelViewSet):
     """
-    API endpoint that allows volunteers to be viewed or edited.
+    API endpoint for administrators to manage volunteers.
+    Provides full CRUD functionality and custom actions for approval/rejection.
+    Requires authentication.
     """
     queryset = Volunteer.objects.all().order_by('-id')
     serializer_class = VolunteerSerializer
     permission_classes = [IsAuthenticated]
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], url_path='approve')
     def approve(self, request, pk=None):
         """
-        Approve a volunteer and sync them to HubSpot.
+        Custom action to approve a volunteer application.
+        This changes the volunteer's status to 'approved' and triggers the sync to HubSpot.
         """
         volunteer = self.get_object()
         if volunteer.status == 'pending':
             volunteer.status = 'approved'
 
-            # Sync to HubSpot
+            # Sync to HubSpot upon approval
             hubspot_api = HubspotAPI()
             api_response = hubspot_api.create_contact(
                 email=volunteer.email,
@@ -36,18 +39,23 @@ class VolunteerViewSet(viewsets.ModelViewSet):
                 availability=volunteer.availability,
                 how_did_you_hear_about_us=volunteer.how_did_you_hear_about_us,
             )
+            # If the sync is successful, save the returned HubSpot ID
             if api_response:
                 volunteer.hubspot_id = api_response.id
 
             volunteer.save()
             return Response({'status': 'volunteer approved'}, status=status.HTTP_200_OK)
         else:
-            return Response({'status': 'volunteer not in pending state'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'status': 'This volunteer is not in a pending state.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], url_path='reject')
     def reject(self, request, pk=None):
         """
-        Reject a volunteer.
+        Custom action to reject a volunteer application.
+        This simply changes the volunteer's status to 'rejected'.
         """
         volunteer = self.get_object()
         if volunteer.status == 'pending':
@@ -55,22 +63,27 @@ class VolunteerViewSet(viewsets.ModelViewSet):
             volunteer.save()
             return Response({'status': 'volunteer rejected'}, status=status.HTTP_200_OK)
         else:
-            return Response({'status': 'volunteer not in pending state'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'status': 'This volunteer is not in a pending state.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 class VolunteerPublicCreateView(generics.CreateAPIView):
     """
-    Public API endpoint for creating a new volunteer (signup).
-    No authentication required.
+    Public API endpoint for creating a new volunteer (the signup form).
+    This view does not require authentication.
     """
     queryset = Volunteer.objects.all()
     serializer_class = VolunteerSerializer
-    permission_classes = [] # No permissions, public endpoint
+    permission_classes = [] # No permissions ensures this endpoint is public
 
 class LoginView(APIView):
     """
     API view for user login.
+    Takes username and password, and returns a success response with a session cookie
+    if the credentials are valid.
     """
-    permission_classes = [] # No permissions, public endpoint
+    permission_classes = [] # Public endpoint
 
     def post(self, request, format=None):
         username = request.data.get('username')

@@ -4,6 +4,39 @@ This document contains notes and explanations about key architectural and design
 
 ---
 
+## High-Level Architecture
+
+The application is designed as a modern, decoupled web application with two main parts:
+
+1.  **A Django REST API Backend**: Serves as the data and logic layer.
+2.  **A React Single-Page Application (SPA) Frontend**: Provides the user interface.
+
+This separation of concerns allows for independent development, testing, and deployment of the backend and frontend.
+
+### Django Backend
+
+The backend is built with the Django web framework and is responsible for:
+
+-   **Data Persistence**: It uses a local database (currently SQLite for development) to store all volunteer applications. The `volunteer.models.Volunteer` model is the core of the data structure, holding all volunteer information as well as their application `status` (`pending`, `approved`, `rejected`) and their `hubspot_id` once they are synced.
+-   **Business Logic**: It contains the core business logic for the volunteer approval workflow. New signups are saved with a `pending` status. Only when an administrator approves them is the data sent to HubSpot.
+-   **Serving a REST API**: It exposes a RESTful API built with **Django REST Framework (DRF)**. This API allows the frontend to perform all necessary actions, including:
+    -   Publicly creating new volunteer applications.
+    -   Authenticating administrators.
+    -   Performing CRUD (Create, Read, Update, Delete) operations on volunteer records.
+    -   Approving and rejecting applications via custom API actions.
+-   **Third-Party Integration**: It manages the integration with the HubSpot API via the `volunteer.hubspot_api.HubspotAPI` service class. This service is only called after a volunteer is approved by an admin.
+
+### React Frontend
+
+The frontend is a modern Single-Page Application built with React and Vite. Its responsibilities include:
+
+-   **User Interface**: Rendering all user-facing pages, including the public volunteer signup form, the admin login page, and the main admin dashboard.
+-   **Client-Side Routing**: Using `react-router-dom` to handle navigation between different pages without requiring a full page reload.
+-   **State Management**: Using React hooks like `useState` and `useEffect` to manage the application's state, such as form inputs and the list of volunteers fetched from the API.
+-   **API Communication**: Using the `axios` library to communicate with the Django backend's REST API. All data is fetched and submitted via asynchronous API calls, which are centralized in the `frontend/src/services/api.js` module.
+
+---
+
 ## The Role of `manage.py` and `load_dotenv()`
 
 A question was raised about why `load_dotenv()` is called in `manage.py` instead of another place like `settings.py`. This is an excellent question that gets to the heart of how Django projects are loaded and configured.
