@@ -1,16 +1,40 @@
 import axios from 'axios';
 
-/**
- * Creates a pre-configured instance of axios.
- * The baseURL is set to '/api/', which will be handled by the Vite proxy
- * in development to redirect to the Django backend (e.g., http://127.0.0.1:8000/api/).
- * It's also configured to handle Django's CSRF tokens automatically.
- */
 const api = axios.create({
   baseURL: '/api/',
-  xsrfCookieName: 'csrftoken',
-  xsrfHeaderName: 'X-CSRFToken',
-  withCredentials: true,
+});
+
+api.interceptors.request.use(config => {
+    const authTokens = localStorage.getItem('authTokens') ? JSON.parse(localStorage.getItem('authTokens')) : null;
+    if (authTokens) {
+        config.headers.Authorization = `Bearer ${authTokens.access}`;
+    }
+    return config;
+});
+
+api.interceptors.response.use(response => response, async error => {
+    const originalRequest = error.config;
+    if (error.response.status === 401 && !originalRequest._retry) {
+        originalRequest._retry = true;
+        const authTokens = localStorage.getItem('authTokens') ? JSON.parse(localStorage.getItem('authTokens')) : null;
+
+        if (authTokens?.refresh) {
+            try {
+                const response = await axios.post('/api/token/refresh/', { refresh: authTokens.refresh });
+                localStorage.setItem('authTokens', JSON.stringify(response.data));
+                api.defaults.headers.common['Authorization'] = 'Bearer ' + response.data.access;
+                originalRequest.headers['Authorization'] = 'Bearer ' + response.data.access;
+                return api(originalRequest);
+            } catch (refreshError) {
+                // Handle failed refresh (e.g., redirect to login)
+                console.error("Token refresh failed", refreshError);
+                localStorage.removeItem('authTokens');
+                window.location.href = '/login';
+                return Promise.reject(refreshError);
+            }
+        }
+    }
+    return Promise.reject(error);
 });
 
 /**
@@ -54,7 +78,7 @@ export const rejectVolunteer = (id) => {
  * @returns {Promise} - The axios promise for the request.
  */
 export const login = (credentials) => {
-  return api.post('login/', credentials);
+  return api.post('token/', credentials);
 };
 
 /**
