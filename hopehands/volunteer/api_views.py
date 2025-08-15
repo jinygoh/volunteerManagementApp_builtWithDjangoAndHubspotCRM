@@ -101,13 +101,14 @@ class VolunteerCSVUploadAPIView(APIView):
             errors = []
             for row in reader:
                 try:
+                    full_name = f"{row.get('First Name', '')} {row.get('Last Name', '')}".strip()
                     Volunteer.objects.create(
-                        name=row.get('name'),
-                        email=row.get('email'),
-                        phone_number=row.get('phone_number'),
-                        preferred_volunteer_role=row.get('preferred_volunteer_role'),
-                        availability=row.get('availability'),
-                        how_did_you_hear_about_us=row.get('how_did_you_hear_about_us'),
+                        name=full_name,
+                        email=row.get('Email'),
+                        phone_number=row.get('Phone Number'),
+                        preferred_volunteer_role=row.get('Preferred Volunteer Role'),
+                        availability=row.get('Availability'),
+                        how_did_you_hear_about_us=row.get('How did you hear about us?'),
                     )
                     volunteers_created += 1
                 except Exception as e:
