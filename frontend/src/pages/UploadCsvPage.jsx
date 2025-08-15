@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { uploadCsv } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { jwtDecode } from 'jwt-decode';
 
 const UploadCsvPage = () => {
     const [file, setFile] = useState(null);
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
+    const { authTokens, refreshToken } = useAuth();
 
     const handleFileChange = (e) => {
         setFile(e.target.files[0]);
@@ -18,6 +21,14 @@ const UploadCsvPage = () => {
         }
         setError('');
         setMessage('');
+
+        // Proactive token refresh check
+        const user = jwtDecode(authTokens.access);
+        const isExpired = Date.now() >= user.exp * 1000;
+
+        if (isExpired) {
+            await refreshToken();
+        }
 
         try {
             const response = await uploadCsv(file);
