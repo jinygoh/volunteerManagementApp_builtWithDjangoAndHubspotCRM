@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
-from rest_framework.parsers import FileUploadParser
+from rest_framework.parsers import MultiPartParser, FormParser
 import csv
 import io
 
@@ -85,7 +85,7 @@ class VolunteerCSVUploadAPIView(APIView):
     Requires admin authentication.
     """
     permission_classes = [IsAuthenticated]
-    parser_classes = (FileUploadParser,)
+    parser_classes = (MultiPartParser, FormParser)
 
     def post(self, request, format=None):
         if 'file' not in request.data:
