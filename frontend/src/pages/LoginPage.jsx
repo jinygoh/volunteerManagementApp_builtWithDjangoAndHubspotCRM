@@ -8,12 +8,14 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  const { login: authLogin } = useAuth();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     try {
-      await login({ username, password });
-      navigate('/'); // Redirect to dashboard on successful login
+      await authLogin({ username, password });
+      // The login function in AuthContext will handle the redirect
     } catch (err) {
       setError('Invalid username or password.');
       console.error(err);

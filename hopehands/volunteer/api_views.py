@@ -1,7 +1,7 @@
 from rest_framework import generics, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
@@ -94,3 +94,13 @@ class LoginView(APIView):
             return Response({'status': 'success', 'user': user.username}, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid Credentials'}, status=status.HTTP_400_BAD_REQUEST)
+
+class LogoutView(APIView):
+    """
+    API view for user logout.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, format=None):
+        logout(request)
+        return Response({'status': 'success'}, status=status.HTTP_200_OK)
