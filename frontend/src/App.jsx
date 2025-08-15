@@ -23,7 +23,7 @@ const Layout = () => {
                                         <Link className="nav-link" to="/admin/dashboard">Dashboard</Link>
                                     </li>
                                     <li className="nav-item">
-                                        <a className="nav-link" href="/upload-csv/">Upload CSV</a>
+                                        <a className="nav-link" href="/volunteer/upload-csv/">Upload CSV</a>
                                     </li>
                                     <li className="nav-item">
                                         <button className="btn btn-link nav-link" onClick={logout}>Logout</button>
