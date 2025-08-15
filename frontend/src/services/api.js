@@ -72,6 +72,16 @@ export const rejectVolunteer = (id) => {
   return api.post(`volunteers/${id}/reject/`);
 };
 
+export const uploadCsv = (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return api.post('upload-csv/', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+};
+
 /**
  * Sends a POST request to log in an admin user.
  * @param {object} credentials - An object with { username, password }.

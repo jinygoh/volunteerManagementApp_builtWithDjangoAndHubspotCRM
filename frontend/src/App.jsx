@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import DashboardPage from './pages/DashboardPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import UploadCsvPage from './pages/UploadCsvPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 const Layout = () => {
@@ -23,7 +24,7 @@ const Layout = () => {
                                         <Link className="nav-link" to="/admin/dashboard">Dashboard</Link>
                                     </li>
                                     <li className="nav-item">
-                                        <a className="nav-link" href="/volunteer/upload-csv/">Upload CSV</a>
+                                        <Link className="nav-link" to="/admin/upload-csv">Upload CSV</Link>
                                     </li>
                                     <li className="nav-item">
                                         <button className="btn btn-link nav-link" onClick={logout}>Logout</button>
@@ -64,6 +65,7 @@ function App() {
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
               <Route path="/admin/dashboard" element={<DashboardPage />} />
+              <Route path="/admin/upload-csv" element={<UploadCsvPage />} />
             </Route>
           </Route>
         </Routes>

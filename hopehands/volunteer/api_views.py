@@ -2,6 +2,9 @@ from rest_framework import generics, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import FileUploadParser
+import csv
+import io
 
 from .models import Volunteer
 from .serializers import VolunteerSerializer
@@ -75,3 +78,44 @@ class VolunteerPublicCreateView(generics.CreateAPIView):
     serializer_class = VolunteerSerializer
     permission_classes = [] # No permissions ensures this endpoint is public
 
+class VolunteerCSVUploadAPIView(APIView):
+    """
+    API endpoint for batch uploading volunteers from a CSV file.
+    Requires admin authentication.
+    """
+    permission_classes = [IsAuthenticated]
+    parser_classes = (FileUploadParser,)
+
+    def post(self, request, format=None):
+        if 'file' not in request.data:
+            return Response({"error": "No file provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+        file_obj = request.data['file']
+        try:
+            decoded_file = file_obj.read().decode('utf-8')
+            io_string = io.StringIO(decoded_file)
+            reader = csv.DictReader(io_string)
+
+            volunteers_created = 0
+            errors = []
+            for row in reader:
+                try:
+                    Volunteer.objects.create(
+                        name=row.get('name'),
+                        email=row.get('email'),
+                        phone_number=row.get('phone_number'),
+                        preferred_volunteer_role=row.get('preferred_volunteer_role'),
+                        availability=row.get('availability'),
+                        how_did_you_hear_about_us=row.get('how_did_you_hear_about_us'),
+                    )
+                    volunteers_created += 1
+                except Exception as e:
+                    errors.append(f"Could not create volunteer from row: {row}. Error: {e}")
+
+            return Response({
+                "status": f"{volunteers_created} volunteers created successfully.",
+                "errors": errors
+            }, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response({"error": f"Failed to parse CSV file: {e}"}, status=status.HTTP_400_BAD_REQUEST)
