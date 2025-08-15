@@ -57,4 +57,12 @@ export const login = (credentials) => {
   return api.post('login/', credentials);
 };
 
+/**
+ * Sends a POST request to log out the currently authenticated user.
+ * @returns {Promise} - The axios promise for the request.
+ */
+export const logout = () => {
+  return api.post('logout/');
+};
+
 export default api;
