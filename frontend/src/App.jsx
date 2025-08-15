@@ -6,22 +6,29 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 
 const Layout = () => (
-  <div>
-    <header>
-      <nav>
-        <h1>HopeHands</h1>
-        <ul>
-          <li><Link to="/">Dashboard</Link></li>
-          <li><Link to="/signup">Volunteer Signup</Link></li>
-          <li><Link to="/login">Admin Login</Link></li>
-        </ul>
-      </nav>
-    </header>
-    <hr />
-    <main>
+  <>
+    <nav className="navbar navbar-expand-lg navbar-dark">
+      <div className="container">
+        <Link className="navbar-brand" to="/">HopeHands</Link>
+        <div className="collapse navbar-collapse">
+          <ul className="navbar-nav">
+            <li className="nav-item">
+              <Link className="nav-link" to="/signup">Volunteer Signup</Link>
+            </li>
+            <li className="nav-item">
+              <Link className="nav-link" to="/">Volunteer List</Link>
+            </li>
+            <li className="nav-item">
+                <Link className="nav-link" to="/login">Admin Login</Link>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <div className="container mt-4">
       <Outlet />
-    </main>
-  </div>
+    </div>
+  </>
 );
 
 function App() {
