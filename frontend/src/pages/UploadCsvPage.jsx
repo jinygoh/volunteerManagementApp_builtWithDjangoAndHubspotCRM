@@ -7,6 +7,7 @@ const UploadCsvPage = () => {
     const [file, setFile] = useState(null);
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
+    const [uploadErrors, setUploadErrors] = useState([]);
     const { authTokens, refreshToken } = useAuth();
 
     const handleFileChange = (e) => {
@@ -21,6 +22,7 @@ const UploadCsvPage = () => {
         }
         setError('');
         setMessage('');
+        setUploadErrors([]);
 
         // Proactive token refresh check
         const user = jwtDecode(authTokens.access);
@@ -33,6 +35,7 @@ const UploadCsvPage = () => {
         try {
             const response = await uploadCsv(file);
             setMessage(response.data.status || 'File uploaded successfully!');
+            setUploadErrors(response.data.errors || []);
             setFile(null);
             e.target.reset();
         } catch (err) {
@@ -49,6 +52,17 @@ const UploadCsvPage = () => {
                         <h2 className="text-center mb-4">Upload Volunteers from CSV</h2>
                         {message && <div className="alert alert-success">{message}</div>}
                         {error && <div className="alert alert-danger">{error}</div>}
+                        {uploadErrors.length > 0 && (
+                            <div className="alert alert-warning">
+                                <h4 className="alert-heading">Upload Issues</h4>
+                                <p>The following rows could not be imported:</p>
+                                <ul>
+                                    {uploadErrors.map((e, index) => (
+                                        <li key={index}>{e}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
                         <form onSubmit={handleSubmit}>
                             <div className="form-group mb-3">
                                 <label htmlFor="csv-file" className="form-label">CSV File</label>
