@@ -5,35 +5,56 @@ const api = axios.create({
 });
 
 api.interceptors.request.use(config => {
+    console.log("Request Interceptor: Firing");
     const authTokens = localStorage.getItem('authTokens') ? JSON.parse(localStorage.getItem('authTokens')) : null;
     if (authTokens) {
+        console.log("Request Interceptor: Token found, adding Authorization header.");
         config.headers.Authorization = `Bearer ${authTokens.access}`;
+    } else {
+        console.log("Request Interceptor: No token found.");
     }
     return config;
 });
 
-api.interceptors.response.use(response => response, async error => {
+api.interceptors.response.use(response => {
+    console.log("Response Interceptor: Received successful response.");
+    return response;
+}, async error => {
+    console.log("Response Interceptor: Fired for an error response.", error);
     const originalRequest = error.config;
-    if (error.response.status === 401 && !originalRequest._retry) {
-        originalRequest._retry = true;
-        const authTokens = localStorage.getItem('authTokens') ? JSON.parse(localStorage.getItem('authTokens')) : null;
 
-        if (authTokens?.refresh) {
-            try {
-                const response = await axios.post('/api/token/refresh/', { refresh: authTokens.refresh });
-                localStorage.setItem('authTokens', JSON.stringify(response.data));
-                api.defaults.headers.common['Authorization'] = 'Bearer ' + response.data.access;
-                originalRequest.headers['Authorization'] = 'Bearer ' + response.data.access;
-                return api(originalRequest);
-            } catch (refreshError) {
-                // Handle failed refresh (e.g., redirect to login)
-                console.error("Token refresh failed", refreshError);
+    if (error.response) {
+        console.log(`Response Interceptor: Error status is ${error.response.status}`);
+        if (error.response.status === 401 && !originalRequest._retry) {
+            console.log("Response Interceptor: Attempting token refresh.");
+            originalRequest._retry = true;
+            const authTokens = localStorage.getItem('authTokens') ? JSON.parse(localStorage.getItem('authTokens')) : null;
+
+            if (authTokens?.refresh) {
+                console.log("Response Interceptor: Refresh token found.");
+                try {
+                    const response = await axios.post('/api/token/refresh/', { refresh: authTokens.refresh });
+                    console.log("Response Interceptor: Token refresh successful.");
+                    localStorage.setItem('authTokens', JSON.stringify(response.data));
+                    api.defaults.headers.common['Authorization'] = 'Bearer ' + response.data.access;
+                    originalRequest.headers['Authorization'] = 'Bearer ' + response.data.access;
+                    return api(originalRequest);
+                } catch (refreshError) {
+                    console.error("Response Interceptor: Token refresh failed.", refreshError);
+                    localStorage.removeItem('authTokens');
+                    window.location.href = '/login';
+                    return Promise.reject(refreshError);
+                }
+            } else {
+                console.log("Response Interceptor: No refresh token found. Logging out.");
                 localStorage.removeItem('authTokens');
                 window.location.href = '/login';
-                return Promise.reject(refreshError);
             }
         }
+    } else {
+        console.log("Response Interceptor: Error does not have a 'response' object (e.g., network error).");
     }
+
     return Promise.reject(error);
 });
 
