@@ -70,6 +70,9 @@ const DashboardPage = () => {
                     <th>ID</th>
                     <th>Name</th>
                     <th>Email</th>
+                    <th>Phone Number</th>
+                    <th>Preferred Role</th>
+                    <th>Availability</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
@@ -80,6 +83,9 @@ const DashboardPage = () => {
                     <td>{volunteer.id}</td>
                     <td>{volunteer.name}</td>
                     <td>{volunteer.email}</td>
+                    <td>{volunteer.phone_number}</td>
+                    <td>{volunteer.preferred_volunteer_role}</td>
+                    <td>{volunteer.availability}</td>
                     <td>
                         <span className={`badge ${getStatusBadge(volunteer.status)}`}>
                             {volunteer.status}
@@ -96,7 +102,7 @@ const DashboardPage = () => {
                     </tr>
                 )) : (
                     <tr>
-                        <td colSpan="5" className="text-center">No volunteers found.</td>
+                        <td colSpan="8" className="text-center">No volunteers found.</td>
                     </tr>
                 )}
                 </tbody>
