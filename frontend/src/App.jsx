@@ -27,6 +27,9 @@ const Layout = () => {
                                         <Link className="nav-link" to="/admin/upload-csv">Upload CSV</Link>
                                     </li>
                                     <li className="nav-item">
+                                        <Link className="nav-link" to="/signup">Volunteer Signup</Link>
+                                    </li>
+                                    <li className="nav-item">
                                         <button className="btn btn-link nav-link" onClick={logout}>Logout</button>
                                     </li>
                                 </>
