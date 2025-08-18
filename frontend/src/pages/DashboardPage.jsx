@@ -68,7 +68,8 @@ const DashboardPage = () => {
                 <thead className="table-dark">
                 <tr>
                     <th>ID</th>
-                    <th>Name</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
                     <th>Email</th>
                     <th>Phone Number</th>
                     <th>Preferred Role</th>
@@ -81,7 +82,8 @@ const DashboardPage = () => {
                 {volunteers.length > 0 ? volunteers.map((volunteer) => (
                     <tr key={volunteer.id}>
                     <td>{volunteer.id}</td>
-                    <td>{volunteer.name}</td>
+                    <td>{volunteer.first_name}</td>
+                    <td>{volunteer.last_name}</td>
                     <td>{volunteer.email}</td>
                     <td>{volunteer.phone_number}</td>
                     <td>{volunteer.preferred_volunteer_role}</td>

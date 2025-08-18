@@ -26,8 +26,10 @@ class Volunteer(models.Model):
         ('rejected', 'Rejected'),
     )
 
-    # The volunteer's full name.
-    name = models.CharField(max_length=100)
+    # The volunteer's first name.
+    first_name = models.CharField(max_length=50)
+    # The volunteer's last name.
+    last_name = models.CharField(max_length=50)
     # The volunteer's email address. This should be unique.
     email = models.EmailField(unique=True)
     # The volunteer's phone number.
@@ -46,8 +48,8 @@ class Volunteer(models.Model):
 
     def __str__(self):
         """
-        Returns a string representation of the volunteer, which is their name.
+        Returns a string representation of the volunteer, which is their full name.
         This is used in the Django admin interface and other places where the
         object needs to be represented as a string.
         """
-        return self.name
+        return f"{self.first_name} {self.last_name}"

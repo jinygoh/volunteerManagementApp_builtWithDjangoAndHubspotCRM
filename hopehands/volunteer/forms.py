@@ -28,7 +28,8 @@ class VolunteerForm(forms.ModelForm):
         """
         model = Volunteer
         fields = [
-            'name',
+            'first_name',
+            'last_name',
             'email',
             'phone_number',
             'preferred_volunteer_role',

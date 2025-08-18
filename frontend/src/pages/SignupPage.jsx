@@ -3,7 +3,8 @@ import { signup } from '../services/api';
 
 const SignupPage = () => {
   const [formData, setFormData] = useState({
-    name: '',
+    first_name: '',
+    last_name: '',
     email: '',
     phone_number: '',
     preferred_volunteer_role: '',
@@ -27,7 +28,7 @@ const SignupPage = () => {
     try {
       await signup(formData);
       setMessage('Thank you for signing up! Your application will be reviewed.');
-      setFormData({ name: '', email: '', phone_number: '', preferred_volunteer_role: '', availability: '', how_did_you_hear_about_us: '' });
+      setFormData({ first_name: '', last_name: '', email: '', phone_number: '', preferred_volunteer_role: '', availability: '', how_did_you_hear_about_us: '' });
     } catch (err) {
       setError('There was an error submitting your application. Please try again.');
       console.error(err);
@@ -42,9 +43,15 @@ const SignupPage = () => {
           {message && <div className="alert alert-success">{message}</div>}
           {error && <div className="alert alert-danger">{error}</div>}
           <form onSubmit={handleSubmit}>
-            <div className="form-group mb-3">
-              <label htmlFor="name">Name</label>
-              <input type="text" id="name" name="name" className="form-control" value={formData.name} onChange={handleChange} required />
+            <div className="row">
+                <div className="col-md-6 mb-3">
+                    <label htmlFor="first_name">First Name</label>
+                    <input type="text" id="first_name" name="first_name" className="form-control" value={formData.first_name} onChange={handleChange} required />
+                </div>
+                <div className="col-md-6 mb-3">
+                    <label htmlFor="last_name">Last Name</label>
+                    <input type="text" id="last_name" name="last_name" className="form-control" value={formData.last_name} onChange={handleChange} required />
+                </div>
             </div>
             <div className="form-group mb-3">
               <label htmlFor="email">Email</label>

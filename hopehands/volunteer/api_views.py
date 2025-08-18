@@ -35,7 +35,7 @@ class VolunteerViewSet(viewsets.ModelViewSet):
             hubspot_api = HubspotAPI()
             api_response = hubspot_api.create_contact(
                 email=volunteer.email,
-                name=volunteer.name,
+                name=f"{volunteer.first_name} {volunteer.last_name}",
                 phone_number=volunteer.phone_number,
                 preferred_volunteer_role=volunteer.preferred_volunteer_role,
                 availability=volunteer.availability,
@@ -101,9 +101,9 @@ class VolunteerCSVUploadAPIView(APIView):
             errors = []
             for row in reader:
                 try:
-                    full_name = f"{row.get('First Name', '')} {row.get('Last Name', '')}".strip()
                     Volunteer.objects.create(
-                        name=full_name,
+                        first_name=row.get('First Name', ''),
+                        last_name=row.get('Last Name', ''),
                         email=row.get('Email'),
                         phone_number=row.get('Phone Number'),
                         preferred_volunteer_role=row.get('Preferred Volunteer Role'),
