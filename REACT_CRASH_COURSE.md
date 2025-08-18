@@ -55,7 +55,7 @@ const DashboardPage = () => {
         <tbody>
           {volunteers.map((volunteer) => (
             <tr key={volunteer.id}>
-              <td>{volunteer.name}</td>
+              <td>{volunteer.first_name} {volunteer.last_name}</td>
               {/* ... other data ... */}
               <td>
                 <button onClick={() => handleApprove(volunteer.id)}>Approve</button>

@@ -14,8 +14,8 @@ All endpoints are relative to this URL. For example, the volunteers endpoint is 
 
 Most API endpoints are protected and require authentication.
 
--   **How to Authenticate**: To log in, send a `POST` request to `/api/login/` with a JSON body containing your `username` and `password`. If successful, the API will return a `sessionid` cookie. All subsequent requests you make to the API must include this cookie to be authenticated.
--   **Public Endpoints**: The only public endpoints that do not require authentication are `/api/login/` and `/api/signup/`.
+-   **How to Authenticate**: To log in, send a `POST` request to `/api/token/` with a JSON body containing your `username` and `password`. If successful, the API will return `access` and `refresh` JSON Web Tokens (JWT). All subsequent requests to protected API endpoints must include the access token in the `Authorization` header, formatted as `Bearer <your_access_token>`.
+-   **Public Endpoints**: The only public endpoint that does not require authentication is `/api/signup/`. The token endpoints (`/api/token/` and `/api/token/refresh/`) are also public.
 
 ---
 
@@ -31,7 +31,8 @@ Here are the main endpoints and how to use them.
 -   **Request Body (JSON)**:
     ```json
     {
-        "name": "Jane Doe",
+        "first_name": "Jane",
+        "last_name": "Doe",
         "email": "jane.doe@example.com",
         "phone_number": "555-123-4567",
         "preferred_volunteer_role": "Event Staff",
@@ -57,7 +58,8 @@ This set of endpoints is managed by a `ModelViewSet` and requires authentication
     [
         {
             "id": 1,
-            "name": "Jane Doe",
+            "first_name": "Jane",
+            "last_name": "Doe",
             "email": "jane.doe@example.com",
             "status": "pending",
             ...

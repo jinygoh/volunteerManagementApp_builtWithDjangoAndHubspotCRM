@@ -53,7 +53,16 @@ cd ..
 ```
 
 ### d. Set Up the Database
-The application is configured to use SQLite for local development, which requires no extra setup. The database file (`db.sqlite3`) will be created automatically. Simply run the migrations:
+The application is configured to use a MySQL database. Ensure you have a running MySQL server.
+
+Update your `.env` file with your database credentials:
+```
+DB_NAME="your_db_name"
+DB_USER="your_db_user"
+DB_PASSWORD="your_db_password"
+```
+
+Once the environment variables are set, run the migrations to create the database schema:
 ```bash
 python hopehands/manage.py migrate
 ```

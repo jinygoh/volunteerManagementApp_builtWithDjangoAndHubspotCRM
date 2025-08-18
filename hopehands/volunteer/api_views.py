@@ -35,7 +35,8 @@ class VolunteerViewSet(viewsets.ModelViewSet):
             hubspot_api = HubspotAPI()
             api_response = hubspot_api.create_contact(
                 email=volunteer.email,
-                name=f"{volunteer.first_name} {volunteer.last_name}",
+                first_name=volunteer.first_name,
+                last_name=volunteer.last_name,
                 phone_number=volunteer.phone_number,
                 preferred_volunteer_role=volunteer.preferred_volunteer_role,
                 availability=volunteer.availability,

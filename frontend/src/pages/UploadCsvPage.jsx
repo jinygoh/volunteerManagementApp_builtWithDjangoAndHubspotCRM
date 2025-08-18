@@ -1,88 +1,78 @@
+/**
+ * @file UploadCsvPage.jsx
+ * @description This component provides a page for administrators to upload a CSV file of volunteers for batch creation.
+ *
+ * It features a file input and an upload button. On submission, it sends the
+ * selected CSV file to the backend API. It displays success and error messages
+ * returned from the server.
+ */
 import React, { useState } from 'react';
 import { uploadCsv } from '../services/api';
-import { useAuth } from '../context/AuthContext';
-import { jwtDecode } from 'jwt-decode';
 
+/**
+ * The main component for the CSV upload page.
+ * @returns {JSX.Element} The rendered CSV upload page.
+ */
 const UploadCsvPage = () => {
-    const [file, setFile] = useState(null);
-    const [message, setMessage] = useState('');
-    const [error, setError] = useState('');
-    const [uploadErrors, setUploadErrors] = useState([]);
-    const { authTokens, refreshToken } = useAuth();
+  // State for the selected file, and for success/error messages.
+  const [file, setFile] = useState(null);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
 
-    const handleFileChange = (e) => {
-        setFile(e.target.files[0]);
-    };
+  /**
+   * Handles changes to the file input element.
+   * @param {React.ChangeEvent<HTMLInputElement>} e - The file input change event.
+   */
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]);
+  };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (!file) {
-            setError('Please select a file to upload.');
-            return;
-        }
-        setError('');
-        setMessage('');
-        setUploadErrors([]);
+  /**
+   * Handles the form submission for uploading the CSV file.
+   * @param {React.FormEvent} e - The form submission event.
+   */
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!file) {
+      setError('Please select a file to upload.');
+      return;
+    }
+    setMessage('');
+    setError('');
+    try {
+      // Call the upload API function.
+      const response = await uploadCsv(file);
+      setMessage(response.data.status || 'CSV uploaded successfully!');
+      // Display any errors that occurred on specific rows.
+      if (response.data.errors && response.data.errors.length > 0) {
+        setError(`Some rows could not be imported: ${response.data.errors.join(', ')}`);
+      }
+    } catch (err) {
+      setError('An error occurred during the file upload.');
+      console.error(err);
+    }
+  };
 
-        // Proactive token refresh check
-        const user = jwtDecode(authTokens.access);
-        const isExpired = Date.now() >= user.exp * 1000;
-
-        if (isExpired) {
-            await refreshToken();
-        }
-
-        try {
-            const response = await uploadCsv(file);
-            setMessage(response.data.status || 'File uploaded successfully!');
-            setUploadErrors(response.data.errors || []);
-            setFile(null);
-            e.target.reset();
-        } catch (err) {
-            setError('An error occurred during the file upload.');
-            console.error(err);
-        }
-    };
-
-    return (
-        <div className="row justify-content-center">
-            <div className="col-md-8">
-                <div className="card shadow-sm mt-5">
-                    <div className="card-body form-container">
-                        <h2 className="text-center mb-4">Upload Volunteers from CSV</h2>
-                        {message && <div className="alert alert-success">{message}</div>}
-                        {error && <div className="alert alert-danger">{error}</div>}
-                        {uploadErrors.length > 0 && (
-                            <div className="alert alert-warning">
-                                <h4 className="alert-heading">Upload Issues</h4>
-                                <p>The following rows could not be imported:</p>
-                                <ul>
-                                    {uploadErrors.map((e, index) => (
-                                        <li key={index}>{e}</li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-                        <form onSubmit={handleSubmit}>
-                            <div className="form-group mb-3">
-                                <label htmlFor="csv-file" className="form-label">CSV File</label>
-                                <input
-                                    type="file"
-                                    id="csv-file"
-                                    className="form-control"
-                                    accept=".csv"
-                                    onChange={handleFileChange}
-                                />
-                            </div>
-                            <div className="d-grid">
-                                <button type="submit" className="btn btn-primary">Upload File</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+  return (
+    <div className="row justify-content-center">
+      <div className="col-md-8 col-lg-6">
+        <div className="form-container">
+          <h1 className="text-center mb-4">Upload Volunteers CSV</h1>
+          {message && <div className="alert alert-success">{message}</div>}
+          {error && <div className="alert alert-danger">{error}</div>}
+          <form onSubmit={handleSubmit}>
+            <div className="form-group mb-3">
+              <label htmlFor="csv-file" className="form-label">CSV File</label>
+              <input type="file" id="csv-file" className="form-control" accept=".csv" onChange={handleFileChange} required />
             </div>
+            <div className="d-grid">
+              <button type="submit" className="btn btn-primary">Upload CSV</button>
+            </div>
+          </form>
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 
 export default UploadCsvPage;

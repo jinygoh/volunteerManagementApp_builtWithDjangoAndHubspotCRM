@@ -1,7 +1,9 @@
 """
-WSGI config for hopehands project.
+WSGI config for the HopeHands project.
 
-It exposes the WSGI callable as a module-level variable named ``application``.
+This file provides the entry-point for WSGI-compatible web servers to serve the
+HopeHands application. Web Server Gateway Interface (WSGI) is the standard for
+Python synchronous web apps and servers.
 
 For more information on this file, see
 https://docs.djangoproject.com/en/5.2/howto/deployment/wsgi/

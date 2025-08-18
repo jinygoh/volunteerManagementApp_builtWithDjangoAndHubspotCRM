@@ -42,15 +42,16 @@ This is the flow for a new volunteer submitting their application.
 
 This flow covers an admin logging in, viewing the volunteer list, and approving an application.
 
-1.  **Login (`LoginPage.jsx` -> `api.js` -> `/api/login/` -> `LoginView`):**
+1.  **Login (`LoginPage.jsx` -> `api.js` -> `/api/token/`):**
     *   The admin submits their credentials on the `LoginPage`.
-    *   This calls the `/api/login/` endpoint, which is handled by the `LoginView` in the backend.
-    *   The `LoginView` uses Django's `authenticate` and `login` functions to create a session for the user, setting an `HttpOnly` session cookie in the browser.
+    *   This calls the `login()` function in `api.js`, which sends a `POST` request to the `/api/token/` endpoint.
+    *   This endpoint is handled by `djangorestframework-simplejwt`'s `TokenObtainPairView`, which validates the credentials.
+    *   If successful, the backend returns a pair of JSON Web Tokens (JWT): an `access` token and a `refresh` token. The frontend stores these tokens in local storage.
 
 2.  **Viewing the Dashboard (`DashboardPage.jsx` -> `api.js` -> `/api/volunteers/`):**
     *   After logging in, the user is redirected to the `DashboardPage`.
     *   The `useEffect` hook in this component calls the `getVolunteers()` function from our `api.js` service.
-    *   `getVolunteers()` sends a `GET` request to `/api/volunteers/`. Because the browser automatically attaches the session cookie, the backend knows the user is authenticated.
+    *   `getVolunteers()` sends a `GET` request to `/api/volunteers/`. The `axios` interceptor in `api.js` automatically attaches the stored JWT access token to the `Authorization` header of the request.
 
 3.  **Backend List View (`api_urls.py` -> `api_views.py`):**
     *   The `/api/volunteers/` URL is handled by the `VolunteerViewSet`.

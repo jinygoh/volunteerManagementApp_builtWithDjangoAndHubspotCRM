@@ -1,7 +1,20 @@
+/**
+ * @file SignupPage.jsx
+ * @description This component renders the public-facing volunteer signup page.
+ *
+ * It provides a form for prospective volunteers to enter their information.
+ * On submission, the data is sent to the backend API. The component handles
+ * success and error messages for the user.
+ */
 import React, { useState } from 'react';
 import { signup } from '../services/api';
 
+/**
+ * The main component for the volunteer signup page.
+ * @returns {JSX.Element} The rendered signup page.
+ */
 const SignupPage = () => {
+  // A single state object to hold all form data.
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -11,9 +24,14 @@ const SignupPage = () => {
     availability: '',
     how_did_you_hear_about_us: '',
   });
+  // State for success and error messages.
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
+  /**
+   * A generic handler to update the formData state as the user types.
+   * @param {React.ChangeEvent<HTMLInputElement>} e - The input change event.
+   */
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -21,13 +39,19 @@ const SignupPage = () => {
     });
   };
 
+  /**
+   * Handles the form submission for the signup process.
+   * @param {React.FormEvent} e - The form submission event.
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage('');
     setError('');
     try {
+      // Call the signup API function with the form data.
       await signup(formData);
       setMessage('Thank you for signing up! Your application will be reviewed.');
+      // Clear the form on successful submission.
       setFormData({ first_name: '', last_name: '', email: '', phone_number: '', preferred_volunteer_role: '', availability: '', how_did_you_hear_about_us: '' });
     } catch (err) {
       setError('There was an error submitting your application. Please try again.');

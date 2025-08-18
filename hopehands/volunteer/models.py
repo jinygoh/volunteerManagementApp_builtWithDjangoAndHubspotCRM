@@ -13,6 +13,7 @@ data before it is sent to HubSpot. It also serves as the basis for the
 """
 
 from django.db import models
+from django.db.models import Q
 
 class Volunteer(models.Model):
     """
@@ -26,30 +27,40 @@ class Volunteer(models.Model):
         ('rejected', 'Rejected'),
     )
 
-    # The volunteer's first name.
-    first_name = models.CharField(max_length=50)
-    # The volunteer's last name.
-    last_name = models.CharField(max_length=50)
-    # The volunteer's email address. This should be unique.
-    email = models.EmailField(unique=True)
-    # The volunteer's phone number.
-    phone_number = models.CharField(max_length=15)
-    # The volunteer's preferred role.
-    preferred_volunteer_role = models.CharField(max_length=100)
-    # The volunteer's availability.
-    availability = models.CharField(max_length=100)
-    # How the volunteer heard about the organization. This field is optional.
-    how_did_you_hear_about_us = models.CharField(max_length=200, blank=True, null=True)
-    # The application status of the volunteer, used in the admin approval workflow.
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
-    # Stores the HubSpot Contact ID after a volunteer is approved and synced.
-    # This is crucial for updating the correct contact in HubSpot later.
-    hubspot_id = models.CharField(max_length=100, blank=True, null=True, unique=True)
+    first_name = models.CharField(max_length=50, help_text="The volunteer's first name.")
+    last_name = models.CharField(max_length=50, help_text="The volunteer's last name.")
+    email = models.EmailField(unique=True, help_text="The volunteer's email address. Must be unique.")
+    phone_number = models.CharField(max_length=15, help_text="The volunteer's phone number.")
+    preferred_volunteer_role = models.CharField(max_length=100, help_text="The volunteer's preferred role.")
+    availability = models.CharField(max_length=100, help_text="The volunteer's availability.")
+    how_did_you_hear_about_us = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        help_text="How the volunteer heard about the organization. Optional."
+    )
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default='pending',
+        help_text="The application status, used in the admin approval workflow."
+    )
+    hubspot_id = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="Stores the HubSpot Contact ID after a volunteer is approved and synced."
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['hubspot_id'],
+                condition=~models.Q(hubspot_id=None),
+                name='unique_hubspot_id_when_not_null'
+            )
+        ]
 
     def __str__(self):
-        """
-        Returns a string representation of the volunteer, which is their full name.
-        This is used in the Django admin interface and other places where the
-        object needs to be represented as a string.
-        """
+        """Returns the full name of the volunteer for display purposes."""
         return f"{self.first_name} {self.last_name}"

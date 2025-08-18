@@ -35,11 +35,11 @@ This cycle describes what happens when the frontend needs to communicate with th
     - The `handleApprove` function calls `approveVolunteer(id)` from our service module, `frontend/src/services/api.js`.
 4.  **Asynchronous HTTP Request (Axios):**
     - The `approveVolunteer` function uses the `axios` instance to send an asynchronous `POST` request to the URL `/api/volunteers/{id}/approve/`.
-    - The browser automatically attaches the user's session cookie to this request, which is how the backend will identify the logged-in user.
+    - The `axios` request interceptor (in `api.js`) automatically attaches the user's JWT access token to the `Authorization` header of this request.
 5.  **Backend Processing (Django):**
     - The Django development server (running on port 8000) receives the `POST` request. The Vite proxy forwards the request from `http://127.0.0.1:5173/api/...` to `http://127.0.0.1:8000/api/...`.
     - **URL Routing:** Django's URL router matches the path to the `approve` custom action within the `VolunteerViewSet`.
-    - **Permissions:** The `VolunteerViewSet` checks its `permission_classes`. Since it includes `IsAuthenticated`, DRF checks the request for valid session authentication. The check passes.
+    - **Permissions:** The `VolunteerViewSet` checks its `permission_classes`. Since it includes `IsAuthenticated`, DRF's `JWTAuthentication` class inspects the `Authorization` header, validates the token, and authenticates the user. The check passes.
     - **View Logic (`api_views.py`):** The `approve` method is executed.
         - It retrieves the `Volunteer` object from the database using the `id` from the URL.
         - It updates the object's status: `volunteer.status = 'approved'`.

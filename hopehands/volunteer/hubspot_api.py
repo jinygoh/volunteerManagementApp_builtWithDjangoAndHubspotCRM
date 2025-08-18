@@ -7,8 +7,8 @@ retrieving, updating, and deleting contacts. This approach isolates the HubSpot-
 code from the Django views, making the views cleaner and the HubSpot integration
 easier to manage and test.
 
-This service is used by the views in `views.py` to perform CRUD operations on
-HubSpot contacts.
+This service is used by the API views in `api_views.py` to sync approved
+volunteers with HubSpot.
 """
 
 from django.conf import settings
@@ -35,25 +35,26 @@ class HubspotAPI:
         """
         self.client = HubSpot(access_token=settings.HUBSPOT_PRIVATE_APP_TOKEN)
 
-    def create_contact(self, email, name, phone_number, preferred_volunteer_role, availability, how_did_you_hear_about_us):
+    def create_contact(self, email, first_name, last_name, phone_number, preferred_volunteer_role, availability, how_did_you_hear_about_us):
         """
-        Creates a new contact in HubSpot.
+        Creates a new contact in HubSpot using the volunteer's details.
 
         Args:
-            email (str): The email address of the contact.
-            name (str): The first name of the contact.
-            phone_number (str): The phone number of the contact.
-            preferred_volunteer_role (str): The preferred volunteer role.
-            availability (str): The contact's availability.
-            how_did_you_hear_about_us (str): How the contact heard about HopeHands.
+            email (str): The volunteer's email address.
+            first_name (str): The volunteer's first name.
+            last_name (str): The volunteer's last name.
+            phone_number (str): The volunteer's phone number.
+            preferred_volunteer_role (str): The volunteer's preferred role.
+            availability (str): The volunteer's availability.
+            how_did_you_hear_about_us (str): How the volunteer heard about HopeHands.
 
         Returns:
-            SimplePublicObject or None: The created contact object from HubSpot,
-                                        or None if the creation failed.
+            The created contact object from HubSpot, or None if creation fails.
         """
         properties = {
             "email": email,
-            "firstname": name,
+            "firstname": first_name,
+            "lastname": last_name,
             "phone": phone_number,
             "lifecyclestage": "lead",  # Default lifecycle stage for new volunteers
             "preferred_volunteer_role": preferred_volunteer_role,
@@ -194,14 +195,14 @@ class HubspotAPI:
 
     def search_contacts(self, query):
         """
-        Searches for contacts by name in HubSpot.
+        Searches for contacts by first name, last name, email, or phone in HubSpot.
 
         Args:
-            query (str): The search query (e.g., a first or last name).
+            query (str): The search term to look for.
 
         Returns:
-            list: A list of HubSpot contact objects that match the search query.
-                  Returns an empty list if an error occurs.
+            A list of HubSpot contact objects that match the search query, or an
+            empty list if an error occurs.
         """
         try:
             # Create filters for each property we want to search
