@@ -64,6 +64,15 @@ export const rejectVolunteer = (id) => {
 };
 
 /**
+ * Sends a request to delete a volunteer. Requires admin authentication.
+ * @param {number} id - The ID of the volunteer to delete.
+ * @returns {Promise} The axios promise for the request.
+ */
+export const deleteVolunteer = (id) => {
+  return api.delete(`volunteers/${id}/`);
+};
+
+/**
  * Uploads a CSV file of volunteers for batch processing. Requires admin authentication.
  * @param {File} file - The CSV file to upload.
  * @returns {Promise} The axios promise for the request.

@@ -8,7 +8,7 @@
  * actions and updates the list upon completion.
  */
 import React, { useState, useEffect } from 'react';
-import { getVolunteers, approveVolunteer, rejectVolunteer } from '../services/api';
+import { getVolunteers, approveVolunteer, rejectVolunteer, deleteVolunteer } from '../services/api';
 
 /**
  * A helper function to determine the Bootstrap badge class based on volunteer status.
@@ -91,6 +91,25 @@ const DashboardPage = () => {
     }
   };
 
+  /**
+   * Handles the deletion of a volunteer.
+   * Prompts the admin for confirmation before proceeding.
+   * @param {number} id - The ID of the volunteer to delete.
+   */
+  const handleDelete = async (id) => {
+    // Confirm with the user before deleting
+    if (window.confirm('Are you sure you want to permanently delete this volunteer?')) {
+      try {
+        await deleteVolunteer(id);
+        // Refresh the list to remove the deleted volunteer.
+        fetchVolunteers();
+      } catch (err) {
+        console.error('Failed to delete volunteer', err);
+        setError('Failed to delete volunteer. Please try again.');
+      }
+    }
+  };
+
   return (
     <div>
       <h1 className="text-center my-4">Volunteer Dashboard</h1>
@@ -128,13 +147,15 @@ const DashboardPage = () => {
                             </span>
                         </td>
                         <td>
-                            {/* Only show actions for pending volunteers */}
+                            {/* Conditional actions for pending volunteers */}
                             {volunteer.status === 'pending' && (
-                            <>
-                                <button className="btn btn-success btn-sm me-2" onClick={() => handleApprove(volunteer.id)}>Approve</button>
-                                <button className="btn btn-danger btn-sm" onClick={() => handleReject(volunteer.id)}>Reject</button>
-                            </>
+                                <>
+                                    <button className="btn btn-success btn-sm me-2" onClick={() => handleApprove(volunteer.id)}>Approve</button>
+                                    <button className="btn btn-danger btn-sm" onClick={() => handleReject(volunteer.id)}>Reject</button>
+                                </>
                             )}
+                            {/* Delete button is always available */}
+                            <button className="btn btn-outline-danger btn-sm ms-2" onClick={() => handleDelete(volunteer.id)}>Delete</button>
                         </td>
                         </tr>
                     )) : (
