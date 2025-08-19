@@ -74,10 +74,14 @@ class VolunteerViewSet(viewsets.ModelViewSet):
 class VolunteerPublicCreateView(generics.CreateAPIView):
     """
     Public API endpoint for creating a new volunteer (the signup form).
-    This view does not require authentication.
+    This view does not require authentication. By setting authentication_classes
+    to [], we ensure that this endpoint never tries to validate a token, even
+    if an invalid or expired one is sent by the browser. This makes the
+    endpoint truly public.
     """
     queryset = Volunteer.objects.all()
     serializer_class = VolunteerSerializer
+    authentication_classes = [] # No authentication for this public view
     permission_classes = [] # No permissions ensures this endpoint is public
 
 class VolunteerCSVUploadAPIView(APIView):
