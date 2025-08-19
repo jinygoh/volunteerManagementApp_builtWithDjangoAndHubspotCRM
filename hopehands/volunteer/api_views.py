@@ -54,6 +54,38 @@ class VolunteerViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+    def update(self, request, *args, **kwargs):
+        """
+        Updates a volunteer's details and syncs the changes to HubSpot if the
+        volunteer has already been approved and has a HubSpot ID.
+        """
+        # First, perform the default update behavior from the parent class.
+        # This will update the volunteer instance in the local database.
+        response = super().update(request, *args, **kwargs)
+
+        # If the update was successful (HTTP 200 OK), proceed to sync with HubSpot.
+        if response.status_code == status.HTTP_200_OK:
+            # Retrieve the updated volunteer instance.
+            volunteer = self.get_object()
+
+            # If the volunteer has a HubSpot ID, it means they have been synced before.
+            if volunteer.hubspot_id:
+                # Prepare the data for the HubSpot API call.
+                hubspot_api = HubspotAPI()
+                properties = {
+                    "email": volunteer.email,
+                    "firstname": volunteer.first_name,
+                    "lastname": volunteer.last_name,
+                    "phone": volunteer.phone_number,
+                    "preferred_volunteer_role": volunteer.preferred_volunteer_role,
+                    "availability": volunteer.availability,
+                    "how_did_you_hear_about_us": volunteer.how_did_you_hear_about_us,
+                }
+                # Call the HubSpot API to update the contact.
+                hubspot_api.update_contact(volunteer.hubspot_id, properties)
+
+        return response
+
     @action(detail=True, methods=['post'], url_path='reject')
     def reject(self, request, pk=None):
         """

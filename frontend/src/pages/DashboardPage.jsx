@@ -8,6 +8,7 @@
  * actions and updates the list upon completion.
  */
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { getVolunteers, approveVolunteer, rejectVolunteer, deleteVolunteer } from '../services/api';
 
 /**
@@ -154,8 +155,9 @@ const DashboardPage = () => {
                                     <button className="btn btn-danger btn-sm" onClick={() => handleReject(volunteer.id)}>Reject</button>
                                 </>
                             )}
-                            {/* Delete button is always available */}
-                            <button className="btn btn-outline-danger btn-sm ms-2" onClick={() => handleDelete(volunteer.id)}>Delete</button>
+                            {/* Edit and Delete buttons are always available */}
+                            <Link to={`/admin/volunteer/${volunteer.id}/edit`} className="btn btn-primary btn-sm me-2">Edit</Link>
+                            <button className="btn btn-outline-danger btn-sm" onClick={() => handleDelete(volunteer.id)}>Delete</button>
                         </td>
                         </tr>
                     )) : (

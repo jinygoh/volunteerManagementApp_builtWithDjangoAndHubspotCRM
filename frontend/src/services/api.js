@@ -114,6 +114,16 @@ export const deleteVolunteer = (id) => {
 };
 
 /**
+ * Sends a request to update a volunteer's details. Requires admin authentication.
+ * @param {number} id - The ID of the volunteer to update.
+ * @param {object} volunteerData - The new data for the volunteer.
+ * @returns {Promise} The axios promise for the request.
+ */
+export const updateVolunteer = (id, volunteerData) => {
+  return api.put(`volunteers/${id}/`, volunteerData);
+};
+
+/**
  * Uploads a CSV file of volunteers for batch processing. Requires admin authentication.
  * @param {File} file - The CSV file to upload.
  * @returns {Promise} The axios promise for the request.

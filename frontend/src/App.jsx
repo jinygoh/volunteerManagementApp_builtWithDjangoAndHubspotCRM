@@ -15,6 +15,7 @@ import DashboardPage from './pages/DashboardPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import UploadCsvPage from './pages/UploadCsvPage';
+import EditVolunteerPage from './pages/EditVolunteerPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 /**
@@ -96,6 +97,7 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/admin/dashboard" element={<DashboardPage />} />
               <Route path="/admin/upload-csv" element={<UploadCsvPage />} />
+              <Route path="/admin/volunteer/:id/edit" element={<EditVolunteerPage />} />
             </Route>
           </Route>
         </Routes>
