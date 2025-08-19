@@ -111,3 +111,43 @@ class VolunteerAPITests(TestCase):
             availability=volunteer.availability,
             how_did_you_hear_about_us=volunteer.how_did_you_hear_about_us,
         )
+
+    @patch('volunteer.api_views.HubspotAPI')
+    def test_reject_action(self, MockHubspotAPI):
+        """
+        Tests the custom 'reject' action on the ViewSet.
+        It should change the volunteer's status and NOT call the HubSpot API.
+        """
+        mock_hubspot_instance = MockHubspotAPI.return_value
+
+        volunteer = Volunteer.objects.create(**self.volunteer_data)
+        reject_url = reverse('volunteer-reject', kwargs={'pk': volunteer.pk})
+
+        token_response = self.client.post(reverse('token_obtain_pair'), {'username': self.username, 'password': self.password})
+        token = token_response.data['access']
+        response = self.client.post(reject_url, HTTP_AUTHORIZATION=f'Bearer {token}')
+
+        self.assertEqual(response.status_code, 200)
+
+        volunteer.refresh_from_db()
+        self.assertEqual(volunteer.status, 'rejected')
+        self.assertIsNone(volunteer.hubspot_id)
+
+        # Verify that the HubSpot API was NOT called
+        mock_hubspot_instance.create_contact.assert_not_called()
+
+    def test_delete_action(self):
+        """
+        Tests that an authenticated user can delete a volunteer via the API.
+        """
+        volunteer = Volunteer.objects.create(**self.volunteer_data)
+        self.assertEqual(Volunteer.objects.count(), 1)
+
+        delete_url = reverse('volunteer-detail', kwargs={'pk': volunteer.pk})
+
+        token_response = self.client.post(reverse('token_obtain_pair'), {'username': self.username, 'password': self.password})
+        token = token_response.data['access']
+        response = self.client.delete(delete_url, HTTP_AUTHORIZATION=f'Bearer {token}')
+
+        self.assertEqual(response.status_code, 204) # 204 No Content for successful deletion
+        self.assertEqual(Volunteer.objects.count(), 0)
