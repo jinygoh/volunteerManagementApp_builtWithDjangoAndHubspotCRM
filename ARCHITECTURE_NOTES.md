@@ -102,3 +102,29 @@ if __name__ == "__main__":
 As you can see, `load_dotenv()` is the very first operational call inside the `main()` function. This ensures that when `execute_from_command_line(sys.argv)` is called—which is the function that actually runs the Django command you specified (like `runserver` or `migrate`)—the environment is already fully configured with the variables from your `.env` file.
 
 In summary, placing `load_dotenv()` in `manage.py` is a strategic choice to ensure that the application's environment is set up correctly and reliably at the earliest possible moment, making the settings available to the entire Django application for any management command you run.
+
+---
+
+## Key Features in Detail
+
+### Admin Approval Workflow
+The application is built around an administrative approval process to ensure that only vetted volunteers are added to the official CRM.
+
+1.  **Public Signup**: A prospective volunteer fills out the public signup form.
+2.  **Pending Status**: A new `Volunteer` record is created in the local database with a `status` of `pending`. No data is sent to HubSpot at this stage.
+3.  **Admin Review**: An authenticated administrator reviews the pending applications on the dashboard.
+4.  **Approval/Rejection**: The admin can choose to either "approve" or "reject" the application.
+5.  **HubSpot Sync**: If approved, the volunteer's status is changed to `approved`, and their core information is synced to HubSpot via the `hubspot_api.create_contact` method. The unique HubSpot ID is then saved back to the local `Volunteer` record. If rejected, the status is simply updated to `rejected`.
+
+### CSV Bulk Import
+To accommodate large-scale data entry, the application supports bulk importing of volunteers from a CSV file. This feature is designed for efficiency and immediate synchronization.
+
+-   **Direct Approval**: Volunteers imported via CSV are considered pre-approved and are created in the local database with a status of `approved`.
+-   **Batch Synchronization**: Immediately after the local records are created, their information is sent to HubSpot using a single, efficient **batch API request** (`hubspot_api.batch_create_contacts`). This minimizes the number of API calls.
+-   **ID-Linking**: The system processes the response from the batch API call, extracts the new HubSpot IDs, and updates the corresponding local volunteer records.
+
+### Data Visualization
+To provide administrators with at-a-glance insights into their volunteer community, a data visualization feature has been implemented.
+
+-   **Backend Endpoint**: A dedicated API endpoint, `/api/visualizations/volunteer-roles/`, aggregates `Volunteer` data from the database. It groups volunteers by their `preferred_volunteer_role` and returns a count for each role.
+-   **Frontend Chart**: A new "Visualizations" page in the admin section (`/admin/visualizations`) fetches data from this endpoint and renders it as a bar chart using the **Chart.js** library. This provides a clear and immediate view of which volunteer roles are most popular.

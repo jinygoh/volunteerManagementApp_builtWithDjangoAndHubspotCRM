@@ -7,9 +7,31 @@ from rest_framework.parsers import MultiPartParser, FormParser
 import csv
 import io
 
+from django.db.models import Count
+
 from .models import Volunteer
 from .serializers import VolunteerSerializer
 from .hubspot_api import HubspotAPI
+
+class VolunteerVisualizationView(APIView):
+    """
+    API endpoint to provide data for visualization.
+    Returns the count of volunteers for each 'preferred_volunteer_role'.
+    Requires admin authentication.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        """
+        Returns aggregated data on volunteer roles.
+        """
+        role_data = (
+            Volunteer.objects
+            .values('preferred_volunteer_role')
+            .annotate(count=Count('id'))
+            .order_by('-count')
+        )
+        return Response(role_data)
 
 class VolunteerViewSet(viewsets.ModelViewSet):
     """
@@ -119,6 +141,8 @@ class VolunteerPublicCreateView(generics.CreateAPIView):
 class VolunteerCSVUploadAPIView(APIView):
     """
     API endpoint for batch uploading volunteers from a CSV file.
+    This process directly approves the volunteers, creates them in the local
+    database, and performs a batch sync to HubSpot.
     Requires admin authentication.
     """
     permission_classes = [IsAuthenticated]
@@ -134,27 +158,66 @@ class VolunteerCSVUploadAPIView(APIView):
             io_string = io.StringIO(decoded_file)
             reader = csv.DictReader(io_string)
 
-            volunteers_created = 0
+            volunteers_to_create = []
+            contacts_for_hubspot = []
             errors = []
+
             for row in reader:
-                try:
-                    Volunteer.objects.create(
+                email = row.get('Email')
+                if not email:
+                    errors.append(f"Skipping row due to missing email: {row}")
+                    continue
+
+                volunteers_to_create.append(
+                    Volunteer(
                         first_name=row.get('First Name', ''),
                         last_name=row.get('Last Name', ''),
-                        email=row.get('Email'),
-                        phone_number=row.get('Phone Number'),
-                        preferred_volunteer_role=row.get('Preferred Volunteer Role'),
-                        availability=row.get('Availability'),
-                        how_did_you_hear_about_us=row.get('How did you hear about us?'),
+                        email=email,
+                        phone_number=row.get('Phone Number', ''),
+                        preferred_volunteer_role=row.get('Preferred Volunteer Role', ''),
+                        availability=row.get('Availability', ''),
+                        how_did_you_hear_about_us=row.get('How did you hear about us?', ''),
+                        status='approved'
                     )
-                    volunteers_created += 1
-                except Exception as e:
-                    errors.append(f"Could not create volunteer from row: {row}. Error: {e}")
+                )
+
+                contacts_for_hubspot.append({
+                    "email": email,
+                    "firstname": row.get('First Name', ''),
+                    "lastname": row.get('Last Name', ''),
+                    "phone": row.get('Phone Number', ''),
+                    "preferred_volunteer_role": row.get('Preferred Volunteer Role', ''),
+                    "availability": row.get('Availability', ''),
+                    "how_did_you_hear_about_us": row.get('How did you hear about us?', ''),
+                    "lifecyclestage": "lead",
+                })
+
+            if not volunteers_to_create:
+                return Response({"error": "No valid volunteer data found in CSV.", "errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+
+            created_volunteers = Volunteer.objects.bulk_create(volunteers_to_create)
+
+            email_to_volunteer_map = {v.email: v for v in created_volunteers}
+
+            hubspot_api = HubspotAPI()
+            hubspot_response = hubspot_api.batch_create_contacts(contacts_for_hubspot)
+
+            synced_count = 0
+            if hubspot_response and hubspot_response.status == 'COMPLETE':
+                volunteers_to_update = []
+                for contact in hubspot_response.results:
+                    volunteer = email_to_volunteer_map.get(contact.properties['email'])
+                    if volunteer:
+                        volunteer.hubspot_id = contact.id
+                        volunteers_to_update.append(volunteer)
+                        synced_count += 1
+
+                Volunteer.objects.bulk_update(volunteers_to_update, ['hubspot_id'])
 
             return Response({
-                "status": f"{volunteers_created} volunteers created successfully.",
+                "status": f"{len(created_volunteers)} volunteers created locally. {synced_count} synced to HubSpot.",
                 "errors": errors
             }, status=status.HTTP_201_CREATED)
 
         except Exception as e:
-            return Response({"error": f"Failed to parse CSV file: {e}"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": f"Failed to process CSV file: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)

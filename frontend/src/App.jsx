@@ -16,6 +16,7 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import UploadCsvPage from './pages/UploadCsvPage';
 import EditVolunteerPage from './pages/EditVolunteerPage';
+import VisualizationPage from './pages/VisualizationPage'; // Import the new page
 import ProtectedRoute from './components/ProtectedRoute';
 
 /**
@@ -43,6 +44,9 @@ const Layout = () => {
                                 <>
                                     <li className="nav-item">
                                         <Link className="nav-link" to="/admin/dashboard">Dashboard</Link>
+                                    </li>
+                                    <li className="nav-item">
+                                        <Link className="nav-link" to="/admin/visualizations">Visualizations</Link>
                                     </li>
                                     <li className="nav-item">
                                         <Link className="nav-link" to="/admin/upload-csv">Upload CSV</Link>
@@ -98,6 +102,7 @@ function App() {
               <Route path="/admin/dashboard" element={<DashboardPage />} />
               <Route path="/admin/upload-csv" element={<UploadCsvPage />} />
               <Route path="/admin/volunteer/:id/edit" element={<EditVolunteerPage />} />
+              <Route path="/admin/visualizations" element={<VisualizationPage />} />
             </Route>
           </Route>
         </Routes>

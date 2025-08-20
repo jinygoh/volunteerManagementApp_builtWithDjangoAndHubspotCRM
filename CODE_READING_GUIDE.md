@@ -76,3 +76,44 @@ This flow covers an admin logging in, viewing the volunteer list, and approving 
     *   React re-renders the component, now showing the volunteer's status as "approved".
 
 By following these flows, you can trace the full lifecycle of a request from a user interaction in the React frontend to the business logic on the Django backend.
+
+---
+
+## Additional Flows to Explore
+
+### Flow 3: Admin Bulk-Uploads Volunteers via CSV
+
+This flow covers an admin using the CSV upload feature to perform a batch import.
+
+1.  **Start at the UI - `frontend/src/pages/UploadCsvPage.jsx`:**
+    *   An admin navigates to the "Upload CSV" page.
+    *   They select a CSV file and click "Upload". This calls the `handleUpload` function.
+
+2.  **Follow to the API Service - `frontend/src/services/api.js`:**
+    *   The `handleUpload` function calls `uploadCsv(file)`, which sends a `POST` request with `multipart/form-data` to the `/api/upload-csv/` endpoint.
+
+3.  **End at the Backend Logic - `hopehands/volunteer/api_views.py`:**
+    *   The `/api/upload-csv/` URL is handled by the `VolunteerCSVUploadAPIView`.
+    *   This view reads the CSV file, and for each row, it creates a `Volunteer` object with the status `'approved'`. It uses `bulk_create` for efficiency.
+    *   It then calls the `hubspot_api.batch_create_contacts` method to sync all the new volunteers to HubSpot in a single API call.
+    *   Finally, it updates the newly created local `Volunteer` records with their `hubspot_id` returned from the batch API call.
+
+### Flow 4: Admin Views Volunteer Data Visualization
+
+This flow covers an admin viewing the new data visualization chart.
+
+1.  **Start at the UI - `frontend/src/pages/VisualizationPage.jsx`:**
+    *   The admin navigates to the "Visualizations" page.
+    *   The `useEffect` hook in this component immediately calls a function to fetch the visualization data.
+
+2.  **Follow to the API Service - `frontend/src/services/api.js`:**
+    *   The fetch function in the component calls a generic `api.get()` method (from the `axios` instance) on the `/api/visualizations/volunteer-roles/` endpoint.
+
+3.  **End at the Backend Logic - `hopehands/volunteer/api_views.py`:**
+    *   The `/api/visualizations/volunteer-roles/` URL is handled by the `VolunteerVisualizationView`.
+    *   This view queries the `Volunteer` model, groups the records by `preferred_volunteer_role`, and returns a JSON array containing each role and the count of volunteers for that role.
+
+4.  **UI Renders the Chart - `frontend/src/pages/VisualizationPage.jsx`:**
+    *   The component receives the aggregated data.
+    *   It transforms this data into the format required by the `react-chartjs-2` library.
+    *   It then renders a `<Bar>` component, displaying the data as a bar chart.

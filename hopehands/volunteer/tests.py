@@ -1,3 +1,4 @@
+import io
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
@@ -151,3 +152,81 @@ class VolunteerAPITests(TestCase):
 
         self.assertEqual(response.status_code, 204) # 204 No Content for successful deletion
         self.assertEqual(Volunteer.objects.count(), 0)
+
+    def test_visualization_endpoint(self):
+        """
+        Tests the visualization endpoint to ensure it returns aggregated data correctly.
+        """
+        # Create some volunteers with different roles
+        Volunteer.objects.create(first_name='A', last_name='1', email='a1@test.com', preferred_volunteer_role='Food Distribution', availability='Mon')
+        Volunteer.objects.create(first_name='B', last_name='2', email='b2@test.com', preferred_volunteer_role='Food Distribution', availability='Tue')
+        Volunteer.objects.create(first_name='C', last_name='3', email='c3@test.com', preferred_volunteer_role='Teaching', availability='Wed')
+
+        # Obtain a token
+        token_response = self.client.post(reverse('token_obtain_pair'), {'username': self.username, 'password': self.password})
+        token = token_response.data['access']
+
+        # Make the request
+        url = reverse('visualization-volunteer-roles')
+        response = self.client.get(url, HTTP_AUTHORIZATION=f'Bearer {token}')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 2) # Two distinct roles
+
+        # The response is ordered by count descending
+        self.assertEqual(response.data[0]['preferred_volunteer_role'], 'Food Distribution')
+        self.assertEqual(response.data[0]['count'], 2)
+        self.assertEqual(response.data[1]['preferred_volunteer_role'], 'Teaching')
+        self.assertEqual(response.data[1]['count'], 1)
+
+    @patch('volunteer.api_views.HubspotAPI')
+    def test_csv_upload_and_batch_sync(self, MockHubspotAPI):
+        """
+        Tests the enhanced CSV upload functionality, ensuring volunteers are
+        created, approved, and batch-synced to HubSpot.
+        """
+        # Configure the mock to simulate a successful batch API call
+        mock_hubspot_instance = MockHubspotAPI.return_value
+        # The mock response needs to be an object with a 'status' and 'results' attribute
+        mock_hubspot_response = type('MockResponse', (), {})()
+        mock_hubspot_response.status = 'COMPLETE'
+        # The results should be a list of objects, each with an 'id' and 'properties'
+        mock_contact1 = type('MockContact', (), {})()
+        mock_contact1.id = 'hs_csv_1'
+        mock_contact1.properties = {'email': 'csv1@example.com'}
+        mock_contact2 = type('MockContact', (), {})()
+        mock_contact2.id = 'hs_csv_2'
+        mock_contact2.properties = {'email': 'csv2@example.com'}
+        mock_hubspot_response.results = [mock_contact1, mock_contact2]
+        mock_hubspot_instance.batch_create_contacts.return_value = mock_hubspot_response
+
+        # Create a CSV file in memory
+        csv_data = (
+            "First Name,Last Name,Email,Phone Number,Preferred Volunteer Role,Availability\n"
+            "CSV,User1,csv1@example.com,111,Role1,Mon\n"
+            "CSV,User2,csv2@example.com,222,Role2,Tue\n"
+        )
+        csv_file = io.StringIO(csv_data)
+        csv_file.name = 'test.csv'
+
+        # Obtain a token
+        token_response = self.client.post(reverse('token_obtain_pair'), {'username': self.username, 'password': self.password})
+        token = token_response.data['access']
+
+        # Make the request
+        url = reverse('upload-csv')
+        response = self.client.post(url, {'file': csv_file}, HTTP_AUTHORIZATION=f'Bearer {token}')
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(Volunteer.objects.count(), 2)
+
+        # Verify volunteers were created as 'approved'
+        self.assertEqual(Volunteer.objects.get(email='csv1@example.com').status, 'approved')
+        self.assertEqual(Volunteer.objects.get(email='csv2@example.com').status, 'approved')
+
+        # Verify HubSpot IDs were updated from the mock response
+        self.assertEqual(Volunteer.objects.get(email='csv1@example.com').hubspot_id, 'hs_csv_1')
+        self.assertEqual(Volunteer.objects.get(email='csv2@example.com').hubspot_id, 'hs_csv_2')
+
+        # Verify that the batch API was called once
+        mock_hubspot_instance.batch_create_contacts.assert_called_once()
