@@ -152,7 +152,7 @@ const DashboardPage = () => {
                             {volunteer.status === 'pending' && (
                                 <>
                                     <button className="btn btn-success btn-sm me-2" onClick={() => handleApprove(volunteer.id)}>Approve</button>
-                                    <button className="btn btn-danger btn-sm" onClick={() => handleReject(volunteer.id)}>Reject</button>
+                                    <button className="btn btn-danger btn-sm me-2" onClick={() => handleReject(volunteer.id)}>Reject</button>
                                 </>
                             )}
                             {/* Edit and Delete buttons are always available */}
