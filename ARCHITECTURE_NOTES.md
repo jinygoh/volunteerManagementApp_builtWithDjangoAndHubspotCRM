@@ -107,14 +107,15 @@ In summary, placing `load_dotenv()` in `manage.py` is a strategic choice to ensu
 
 ## Key Features in Detail
 
-### Admin Approval Workflow
-The application is built around an administrative approval process to ensure that only vetted volunteers are added to the official CRM.
+### Data Sync Lifecycle with HubSpot
+The application maintains a synchronized relationship with HubSpot, ensuring that the CRM is always up-to-date with the status of approved volunteers.
 
-1.  **Public Signup**: A prospective volunteer fills out the public signup form.
-2.  **Pending Status**: A new `Volunteer` record is created in the local database with a `status` of `pending`. No data is sent to HubSpot at this stage.
-3.  **Admin Review**: An authenticated administrator reviews the pending applications on the dashboard.
-4.  **Approval/Rejection**: The admin can choose to either "approve" or "reject" the application.
-5.  **HubSpot Sync**: If approved, the volunteer's status is changed to `approved`, and their core information is synced to HubSpot via the `hubspot_api.create_contact` method. The unique HubSpot ID is then saved back to the local `Volunteer` record. If rejected, the status is simply updated to `rejected`.
+1.  **Public Signup**: A prospective volunteer fills out the public signup form. A new `Volunteer` record is created in the local database with a `status` of `pending`. No data is sent to HubSpot at this stage.
+2.  **Admin Review**: An authenticated administrator reviews the pending applications on the dashboard.
+3.  **Approval and Creation**: When an admin approves an application, the volunteer's status is changed to `approved`, and their information is synced to HubSpot, creating a new contact. The unique HubSpot ID is then saved back to the local `Volunteer` record.
+4.  **Rejection**: If an application is rejected, the status is simply updated to `rejected`, and no data is sent to HubSpot.
+5.  **Updates**: If an admin edits the details of an *approved* volunteer, the changes are synced to HubSpot, updating the corresponding contact's properties.
+6.  **Deletions**: If an admin deletes a volunteer who has been previously synced to HubSpot, the application makes a corresponding API call to **archive** the contact in HubSpot, keeping the two systems in sync.
 
 ### CSV Bulk Import
 To accommodate large-scale data entry, the application supports bulk importing of volunteers from a CSV file. This feature is designed for efficiency and immediate synchronization.

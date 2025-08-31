@@ -37,6 +37,10 @@ class VolunteerViewSet(viewsets.ModelViewSet):
     """
     API endpoint for administrators to manage volunteers.
     Provides full CRUD functionality and custom actions for approval/rejection.
+    This ViewSet also handles synchronization with HubSpot:
+    - Approving a volunteer creates a contact in HubSpot.
+    - Updating a volunteer updates the HubSpot contact.
+    - Deleting a volunteer archives the contact in HubSpot.
     Requires authentication.
     """
     queryset = Volunteer.objects.all().order_by('-id')

@@ -89,3 +89,19 @@ npm run dev
 This will typically start the React development server at `http://localhost:3000/` and open the application in your web browser.
 
 You should now be able to access the application in your web browser at `http://localhost:3000/`.
+
+---
+
+## Running Tests
+
+### Backend Tests
+
+The project includes a test suite for the Django backend. To run these tests, navigate to the `hopehands` directory and run the following command:
+
+```bash
+python manage.py test
+```
+
+### Frontend Tests
+
+There are currently no automated tests configured for the React frontend.

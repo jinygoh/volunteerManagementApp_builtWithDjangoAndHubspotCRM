@@ -94,6 +94,7 @@ const DashboardPage = () => {
 
   /**
    * Handles the deletion of a volunteer.
+   * This action also triggers a sync to HubSpot to archive the contact.
    * Prompts the admin for confirmation before proceeding.
    * @param {number} id - The ID of the volunteer to delete.
    */
