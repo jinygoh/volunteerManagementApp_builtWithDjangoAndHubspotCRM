@@ -157,43 +157,64 @@ class VolunteerCSVUploadAPIView(APIView):
             # Handle both in-memory text files (from tests) and binary files (from uploads)
             file_content = file_obj.read()
             if isinstance(file_content, bytes):
+                # Use 'utf-8-sig' to handle the BOM (Byte Order Mark)
                 decoded_file = file_content.decode('utf-8-sig')
             else:
                 decoded_file = file_content
             io_string = io.StringIO(decoded_file)
             reader = csv.DictReader(io_string)
 
+            # Normalize the fieldnames to be lowercase and use underscores for consistency
+            if reader.fieldnames:
+                reader.fieldnames = [field.lower().replace(' ', '_').replace('?', '') for field in reader.fieldnames]
+
             volunteers_to_create = []
             contacts_for_hubspot = []
             errors = []
 
             for row in reader:
-                email = row.get('Email')
+                email = row.get('email')
                 if not email:
                     errors.append(f"Skipping row due to missing email: {row}")
                     continue
 
+                # Handle name, which can be in 'name' or 'first_name'/'last_name' columns
+                first_name = row.get('first_name', '')
+                last_name = row.get('last_name', '')
+                if not first_name and not last_name:
+                    name = row.get('name', '')
+                    if name:
+                        parts = name.split(' ', 1)
+                        first_name = parts[0]
+                        last_name = parts[1] if len(parts) > 1 else ''
+
+                # Get other fields using normalized keys
+                phone_number = row.get('phone_number', '')
+                preferred_volunteer_role = row.get('preferred_volunteer_role', '')
+                availability = row.get('availability', '')
+                how_did_you_hear_about_us = row.get('how_did_you_hear_about_us', '')
+
                 volunteers_to_create.append(
                     Volunteer(
-                        first_name=row.get('First Name', ''),
-                        last_name=row.get('Last Name', ''),
+                        first_name=first_name,
+                        last_name=last_name,
                         email=email,
-                        phone_number=row.get('Phone Number', ''),
-                        preferred_volunteer_role=row.get('Preferred Volunteer Role', ''),
-                        availability=row.get('Availability', ''),
-                        how_did_you_hear_about_us=row.get('How did you hear about us?', ''),
+                        phone_number=phone_number,
+                        preferred_volunteer_role=preferred_volunteer_role,
+                        availability=availability,
+                        how_did_you_hear_about_us=how_did_you_hear_about_us,
                         status='approved'
                     )
                 )
 
                 contacts_for_hubspot.append({
                     "email": email,
-                    "firstname": row.get('First Name', ''),
-                    "lastname": row.get('Last Name', ''),
-                    "phone": row.get('Phone Number', ''),
-                    "preferred_volunteer_role": row.get('Preferred Volunteer Role', ''),
-                    "availability": row.get('Availability', ''),
-                    "how_did_you_hear_about_us": row.get('How did you hear about us?', ''),
+                    "firstname": first_name,
+                    "lastname": last_name,
+                    "phone": phone_number,
+                    "preferred_volunteer_role": preferred_volunteer_role,
+                    "availability": availability,
+                    "how_did_you_hear_about_us": how_did_you_hear_about_us,
                     "lifecyclestage": "lead",
                 })
 
