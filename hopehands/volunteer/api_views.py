@@ -157,7 +157,7 @@ class VolunteerCSVUploadAPIView(APIView):
             # Handle both in-memory text files (from tests) and binary files (from uploads)
             file_content = file_obj.read()
             if isinstance(file_content, bytes):
-                decoded_file = file_content.decode('utf-8')
+                decoded_file = file_content.decode('utf-8-sig')
             else:
                 decoded_file = file_content
             io_string = io.StringIO(decoded_file)
