@@ -221,9 +221,14 @@ class VolunteerCSVUploadAPIView(APIView):
             if not volunteers_to_create:
                 return Response({"error": "No valid volunteer data found in CSV.", "errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
-            created_volunteers = Volunteer.objects.bulk_create(volunteers_to_create)
+            # Get the list of emails before creating the volunteers
+            volunteer_emails = [v.email for v in volunteers_to_create]
+            Volunteer.objects.bulk_create(volunteers_to_create)
 
-            email_to_volunteer_map = {v.email: v for v in created_volunteers}
+            # After bulk creating, the volunteer instances in memory don't have their IDs.
+            # We need to re-fetch them from the database to get the IDs.
+            created_volunteers_with_pks = Volunteer.objects.filter(email__in=volunteer_emails)
+            email_to_volunteer_map = {v.email: v for v in created_volunteers_with_pks}
 
             hubspot_api = HubspotAPI()
             hubspot_response = hubspot_api.batch_create_contacts(contacts_for_hubspot)
@@ -241,7 +246,7 @@ class VolunteerCSVUploadAPIView(APIView):
                 Volunteer.objects.bulk_update(volunteers_to_update, ['hubspot_id'])
 
             return Response({
-                "status": f"{len(created_volunteers)} volunteers created locally. {synced_count} synced to HubSpot.",
+                "status": f"{len(volunteers_to_create)} volunteers created locally. {synced_count} synced to HubSpot.",
                 "errors": errors
             }, status=status.HTTP_201_CREATED)
 
