@@ -154,7 +154,12 @@ class VolunteerCSVUploadAPIView(APIView):
 
         file_obj = request.data['file']
         try:
-            decoded_file = file_obj.read().decode('utf-8')
+            # Handle both in-memory text files (from tests) and binary files (from uploads)
+            file_content = file_obj.read()
+            if isinstance(file_content, bytes):
+                decoded_file = file_content.decode('utf-8')
+            else:
+                decoded_file = file_content
             io_string = io.StringIO(decoded_file)
             reader = csv.DictReader(io_string)
 
@@ -221,3 +226,4 @@ class VolunteerCSVUploadAPIView(APIView):
 
         except Exception as e:
             return Response({"error": f"Failed to process CSV file: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+After 
