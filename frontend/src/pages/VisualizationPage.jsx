@@ -8,7 +8,7 @@
  * during the data fetching process.
  */
 import React, { useState, useEffect } from 'react';
-import { api } from '../services/api'; // Corrected import
+import api from '../services/api'; // Corrected import
 import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
