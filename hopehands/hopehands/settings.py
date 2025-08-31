@@ -83,7 +83,7 @@ WSGI_APPLICATION = "hopehands.wsgi.application"
 
 DATABASES = {
     "default": {
-        'ENGINE': 'mysql.connector.django',
+        'ENGINE': 'django.db.backends.mysql',
         'NAME': os.environ.get('DB_NAME'),
         'USER': os.environ.get('DB_USER'),
         'PASSWORD': os.environ.get('DB_PASSWORD'),
