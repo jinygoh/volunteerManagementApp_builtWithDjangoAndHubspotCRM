@@ -76,6 +76,23 @@ class VolunteerViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+    def destroy(self, request, *args, **kwargs):
+        """
+        Deletes a volunteer from the local database and also archives the
+        corresponding contact in HubSpot if it exists.
+        """
+        volunteer = self.get_object()
+
+        # If the volunteer has a HubSpot ID, attempt to delete them from HubSpot first.
+        if volunteer.hubspot_id:
+            hubspot_api = HubspotAPI()
+            # The delete_contact method returns True on success, False on failure.
+            # We can optionally add more robust error handling here if needed.
+            hubspot_api.delete_contact(volunteer.hubspot_id)
+
+        # After handling HubSpot, proceed with the default deletion behavior.
+        return super().destroy(request, *args, **kwargs)
+
     def update(self, request, *args, **kwargs):
         """
         Updates a volunteer's details and syncs the changes to HubSpot if the
