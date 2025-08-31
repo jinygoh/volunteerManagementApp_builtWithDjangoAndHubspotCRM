@@ -2,13 +2,13 @@
  * @file api.js
  * @description This file configures and exports an Axios instance for making API calls to the Django backend.
  *
- * It includes an Axios interceptor that automatically attaches the JWT access token
- * to the Authorization header of every outgoing request, if a token is available
- * in local storage. This simplifies authentication for protected endpoints.
+ * It includes a request interceptor that automatically attaches the JWT access token
+ * to the Authorization header of every outgoing request. The response interceptor
+ * for handling token refreshes is managed in `src/context/AuthContext.jsx`.
  *
- * It also exports a collection of functions that correspond to specific API endpoints,
- * providing a clean and reusable way to interact with the backend API from the
- * React components.
+ * This file also exports a collection of functions that correspond to specific API
+ * endpoints, providing a clean and reusable way to interact with the backend API
+ * from the React components.
  */
 import axios from 'axios';
 

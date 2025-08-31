@@ -77,7 +77,7 @@ class HubspotAPI:
 
     def get_all_contacts(self):
         """
-        Retrieves all contacts from HubSpot.
+        Retrieves all contacts from HubSpot. Currently for utility or future use.
 
         Returns:
             list: A list of HubSpot contact objects. Returns an empty list if
@@ -98,7 +98,7 @@ class HubspotAPI:
 
     def get_contact(self, contact_id):
         """
-        Retrieves a single contact by its ID from HubSpot.
+        Retrieves a single contact by its ID from HubSpot. Currently for utility or future use.
 
         Args:
             contact_id (int): The ID of the contact to retrieve.
@@ -196,6 +196,7 @@ class HubspotAPI:
     def search_contacts(self, query):
         """
         Searches for contacts by first name, last name, email, or phone in HubSpot.
+        Currently for utility or future use.
 
         Args:
             query (str): The search term to look for.

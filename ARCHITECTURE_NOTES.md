@@ -17,14 +17,14 @@ This separation of concerns allows for independent development, testing, and dep
 
 The backend is built with the Django web framework and is responsible for:
 
--   **Data Persistence**: It uses a local database (currently SQLite for development) to store all volunteer applications. The `volunteer.models.Volunteer` model is the core of the data structure, holding all volunteer information as well as their application `status` (`pending`, `approved`, `rejected`) and their `hubspot_id` once they are synced.
--   **Business Logic**: It contains the core business logic for the volunteer approval workflow. New signups are saved with a `pending` status. Only when an administrator approves them is the data sent to HubSpot.
+-   **Data Persistence**: It uses a MySQL database to store all volunteer applications, configured via environment variables. The `volunteer.models.Volunteer` model is the core of the data structure, holding all volunteer information as well as their application `status` (`pending`, `approved`, `rejected`) and their `hubspot_id` once they are synced.
+-   **Business Logic**: It contains the core business logic for the volunteer approval workflow and data synchronization with HubSpot.
 -   **Serving a REST API**: It exposes a RESTful API built with **Django REST Framework (DRF)**. This API allows the frontend to perform all necessary actions, including:
     -   Publicly creating new volunteer applications.
     -   Authenticating administrators.
     -   Performing CRUD (Create, Read, Update, Delete) operations on volunteer records.
     -   Approving and rejecting applications via custom API actions.
--   **Third-Party Integration**: It manages the integration with the HubSpot API via the `volunteer.hubspot_api.HubspotAPI` service class. This service is only called after a volunteer is approved by an admin.
+-   **Third-Party Integration**: It manages the integration with the HubSpot API via the `volunteer.hubspot_api.HubspotAPI` service class. This service handles the synchronization of volunteer data (creation, updates, and deletion) with HubSpot contacts.
 
 ### React Frontend
 
@@ -32,8 +32,8 @@ The frontend is a modern Single-Page Application built with React and Vite. Its 
 
 -   **User Interface**: Rendering all user-facing pages, including the public volunteer signup form, the admin login page, and the main admin dashboard.
 -   **Client-Side Routing**: Using `react-router-dom` to handle navigation between different pages without requiring a full page reload.
--   **State Management**: Using React hooks like `useState` and `useEffect` to manage the application's state, such as form inputs and the list of volunteers fetched from the API.
--   **API Communication**: Using the `axios` library to communicate with the Django backend's REST API. All data is fetched and submitted via asynchronous API calls, which are centralized in the `frontend/src/services/api.js` module.
+-   **State Management**: Using React hooks like `useState`, `useEffect`, and `useContext` to manage the application's state. This includes local component state (form inputs, etc.) and global application state like authentication status, which is managed in the `AuthContext`.
+-   **API Communication**: Using the `axios` library to communicate with the Django backend's REST API. All API service functions are centralized in `frontend/src/services/api.js`. The `AuthContext` provider configures Axios interceptors to automatically handle JWT token attachment to headers and to refresh expired tokens, centralizing authentication logic.
 
 ---
 

@@ -39,6 +39,13 @@ The administrator has two choices for each application:
 
 This workflow ensures that the main HubSpot contact list remains clean and only contains information from fully approved volunteers.
 
+**Step 5: Managing Approved Volunteers**
+
+Once a volunteer is approved, their journey with HopeHands is just beginning! The administrators can continue to manage their information:
+
+*   **Updating Information**: If a volunteer's details change (e.g., they have a new phone number or change their availability), an administrator can update their profile in the dashboard. These changes are automatically synced to keep their HubSpot record up-to-date.
+*   **Removing a Volunteer**: If a volunteer leaves the organization, an administrator can delete their record from the dashboard. This action also automatically archives their contact in HubSpot, ensuring the main contact list remains accurate.
+
 ## 4. Other Key Features
 
 Besides the main workflow, the application has a couple of other important features for administrators:

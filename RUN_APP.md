@@ -11,22 +11,6 @@ This document outlines the steps to set up and run the Volunteer Management Appl
 
 ## Setup Steps
 
-shortcut copy paste for backend
-
-py -m venv venv
-source venv/Scripts/activate
-pip install -r requirements.txt
-cd hopehands
-python manage.py makemigrations
-python manage.py migrate
-py manage.py runserver
-
-shortcut copy paste for front end
-
-cd frontend
-npm install
-npm run dev
-
 ### 1. Backend Setup (Django)
 
 1.  **Navigate to the backend directory:**
@@ -82,13 +66,11 @@ In a **new** terminal window, navigate to the `frontend` directory:
 
 ```bash
 cd frontend
-npm start
-or
 npm run dev
 ```
-This will typically start the React development server at `http://localhost:3000/` and open the application in your web browser.
+This will typically start the Vite development server at `http://localhost:5173/` and open the application in your web browser.
 
-You should now be able to access the application in your web browser at `http://localhost:3000/`.
+You should now be able to access the application in your web browser at `http://localhost:5173/`.
 
 ---
 

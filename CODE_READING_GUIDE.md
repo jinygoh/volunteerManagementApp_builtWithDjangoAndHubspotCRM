@@ -71,7 +71,19 @@ This flow covers an admin logging in, viewing the volunteer list, and approving 
         4.  It receives the new contact's ID from HubSpot and saves it to the `volunteer.hubspot_id` field.
         5.  It saves the updated volunteer object.
 
-6.  **UI Update (`DashboardPage.jsx`):**
+6.  **Admin Action (Update):**
+    *   The admin clicks the "Edit" button for a volunteer. This navigates them to the `EditVolunteerPage`.
+    *   After changing the data and clicking "Save", the `handleSubmit` function calls `updateVolunteer(id, data)` from `api.js`.
+    *   This sends a `PUT` request to `/api/volunteers/{id}/`.
+    *   The backend `VolunteerViewSet`'s `update` method handles the request. It updates the local volunteer record and, if the volunteer has a `hubspot_id`, it calls `hubspot_api.update_contact` to keep the CRM in sync.
+
+7.  **Admin Action (Delete):**
+    *   The admin clicks the "Delete" button for a volunteer.
+    *   The `handleDelete(id)` function in `DashboardPage.jsx` calls `deleteVolunteer(id)` from `api.js`.
+    *   This sends a `DELETE` request to `/api/volunteers/{id}/`.
+    *   The backend `VolunteerViewSet`'s `destroy` method handles this. It calls `hubspot_api.delete_contact` to archive the contact in HubSpot (if a `hubspot_id` exists) and then deletes the volunteer from the local database.
+
+8.  **UI Update (`DashboardPage.jsx`):**
     *   After the `approveVolunteer` API call successfully completes, the `DashboardPage` calls `fetchVolunteers()` again to get the updated list from the backend.
     *   React re-renders the component, now showing the volunteer's status as "approved".
 

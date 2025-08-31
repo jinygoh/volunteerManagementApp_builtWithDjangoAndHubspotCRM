@@ -3,9 +3,9 @@
  * @description This file defines the authentication context for the React application.
  *
  * It provides a way to share authentication state (like the user object and JWT tokens)
- * and functions (like login, logout, and token refresh) across all components
- * wrapped within the `AuthProvider`. This avoids the need to pass props down through
- * multiple levels of the component tree (prop drilling).
+ * and functions (like login and logout) across all components wrapped within the
+ * `AuthProvider`. It also configures an Axios interceptor to handle automatic
+ * JWT token refreshes, ensuring seamless authenticated sessions.
  */
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { login as apiLogin, api } from '../services/api';
@@ -56,6 +56,14 @@ export const AuthProvider = ({ children }) => {
     navigate('/login');
   };
 
+  // This useEffect hook sets up a global Axios response interceptor to handle
+  // JWT token refreshes automatically.
+  // When an API call returns a 401 Unauthorized error, the interceptor
+  // attempts to use the refresh token to get a new access token. If successful,
+  // it updates the authentication state and local storage, and then retries the
+  // original failed request with the new token. If the refresh fails, it logs
+  // the user out.
+  // The interceptor is cleaned up when the AuthProvider unmounts.
   useEffect(() => {
     const interceptor = api.interceptors.response.use(
       (response) => response,
