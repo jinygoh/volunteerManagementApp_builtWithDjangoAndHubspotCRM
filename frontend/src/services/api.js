@@ -13,7 +13,7 @@
 import axios from 'axios';
 
 // Create an Axios instance with a base URL for all API requests.
-const api = axios.create({
+export const api = axios.create({
   baseURL: '/api/',
 });
 
@@ -25,49 +25,6 @@ api.interceptors.request.use(config => {
     }
     return config;
 });
-
-// Use a response interceptor to handle token refreshes.
-api.interceptors.response.use(
-  (response) => response, // Directly return successful responses.
-  async (error) => {
-    const originalRequest = error.config;
-    // Check if the error is 401 and not a retry request.
-    if (error.response.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true; // Mark the request as retried.
-
-      const authTokens = localStorage.getItem('authTokens') ? JSON.parse(localStorage.getItem('authTokens')) : null;
-
-      if (authTokens?.refresh) {
-        try {
-          // Attempt to refresh the token.
-          const response = await axios.post('/api/token/refresh/', { refresh: authTokens.refresh });
-          const newTokens = response.data;
-
-          // Store the new tokens.
-          localStorage.setItem('authTokens', JSON.stringify(newTokens));
-
-          // Update the authorization header for the original request.
-          originalRequest.headers.Authorization = `Bearer ${newTokens.access}`;
-
-          // Retry the original request with the new token.
-          return api(originalRequest);
-        } catch (refreshError) {
-          // If refresh fails, clear tokens and redirect to login.
-          console.error("Token refresh failed:", refreshError);
-          localStorage.removeItem('authTokens');
-          window.location.href = '/login'; // Force redirect.
-          return Promise.reject(refreshError);
-        }
-      } else {
-        // If there's no refresh token, redirect to login.
-        localStorage.removeItem('authTokens');
-        window.location.href = '/login';
-      }
-    }
-    // For all other errors, just reject the promise.
-    return Promise.reject(error);
-  }
-);
 
 /**
  * Sends a POST request to create a new volunteer application.

@@ -48,7 +48,9 @@ const UploadCsvPage = () => {
         setError(`Some rows could not be imported: ${response.data.errors.join(', ')}`);
       }
     } catch (err) {
-      setError('An error occurred during the file upload.');
+      // Try to get the detailed error message from the backend response.
+      const errorMessage = err.response?.data?.error || 'An error occurred during the file upload.';
+      setError(errorMessage);
       console.error(err);
     }
   };

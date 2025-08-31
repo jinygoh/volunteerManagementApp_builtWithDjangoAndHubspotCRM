@@ -7,8 +7,8 @@
  * wrapped within the `AuthProvider`. This avoids the need to pass props down through
  * multiple levels of the component tree (prop drilling).
  */
-import React, { createContext, useState, useContext } from 'react';
-import { login as apiLogin } from '../services/api';
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import { login as apiLogin, api } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from "jwt-decode";
 import axios from 'axios';
@@ -56,26 +56,45 @@ export const AuthProvider = ({ children }) => {
     navigate('/login');
   };
 
-  /**
-   * Refreshes the JWT access token using the refresh token.
-   * This is typically called by an Axios interceptor when a 401 error is received.
-   */
-  const refreshToken = async () => {
-    try {
-        const response = await axios.post('/api/token/refresh/', { refresh: authTokens.refresh });
-        const data = response.data;
-        setAuthTokens(data);
-        setUser(jwtDecode(data.access));
-        localStorage.setItem('authTokens', JSON.stringify(data));
-        return data;
-    } catch (error) {
-        console.error("Failed to refresh token", error);
-        logout(); // Logout user if refresh fails
-    }
-  };
+  useEffect(() => {
+    const interceptor = api.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        const originalRequest = error.config;
+        if (error.response.status === 401 && !originalRequest._retry) {
+          originalRequest._retry = true;
+
+          if (authTokens?.refresh) {
+            try {
+              const response = await axios.post('/api/token/refresh/', { refresh: authTokens.refresh });
+              const newTokens = response.data;
+
+              setAuthTokens(newTokens);
+              setUser(jwtDecode(newTokens.access));
+              localStorage.setItem('authTokens', JSON.stringify(newTokens));
+
+              originalRequest.headers.Authorization = `Bearer ${newTokens.access}`;
+              return api(originalRequest);
+            } catch (refreshError) {
+              console.error("Token refresh failed:", refreshError);
+              logout();
+              return Promise.reject(refreshError);
+            }
+          } else {
+            logout();
+          }
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    return () => {
+      api.interceptors.response.eject(interceptor);
+    };
+  }, [authTokens, logout]);
 
   // The value provided to the context consumers.
-  const value = { user, login, logout, refreshToken, authTokens };
+  const value = { user, login, logout, authTokens };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
