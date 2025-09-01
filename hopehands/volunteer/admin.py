@@ -13,7 +13,7 @@ class VolunteerAdmin(admin.ModelAdmin):
     """
     Customizes the display and behavior of the Volunteer model in the Django admin.
     """
-    list_display = ('first_name', 'last_name', 'email', 'status', 'hubspot_id')
+    list_display = ('first_name', 'last_name', 'email', 'status')
     search_fields = ('first_name', 'last_name', 'email')
     list_filter = ('status', 'preferred_volunteer_role')
-    readonly_fields = ('hubspot_id',)
+    readonly_fields = ()

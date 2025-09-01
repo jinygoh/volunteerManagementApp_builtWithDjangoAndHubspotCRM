@@ -17,14 +17,13 @@ This separation of concerns allows for independent development, testing, and dep
 
 The backend is built with the Django web framework and is responsible for:
 
--   **Data Persistence**: It uses a MySQL database to store all volunteer applications, configured via environment variables. The `volunteer.models.Volunteer` model is the core of the data structure, holding all volunteer information as well as their application `status` (`pending`, `approved`, `rejected`) and their `hubspot_id` once they are synced.
--   **Business Logic**: It contains the core business logic for the volunteer approval workflow and data synchronization with HubSpot.
+-   **Data Persistence**: It uses a MySQL database to store all volunteer applications, configured via environment variables. The `volunteer.models.Volunteer` model is the core of the data structure, holding all volunteer information as well as their application `status` (`pending`, `approved`, `rejected`).
+-   **Business Logic**: It contains the core business logic for the volunteer approval workflow.
 -   **Serving a REST API**: It exposes a RESTful API built with **Django REST Framework (DRF)**. This API allows the frontend to perform all necessary actions, including:
     -   Publicly creating new volunteer applications.
     -   Authenticating administrators.
     -   Performing CRUD (Create, Read, Update, Delete) operations on volunteer records.
     -   Approving and rejecting applications via custom API actions.
--   **Third-Party Integration**: It manages the integration with the HubSpot API via the `volunteer.hubspot_api.HubspotAPI` service class. This service handles the synchronization of volunteer data (creation, updates, and deletion) with HubSpot contacts.
 
 ### React Frontend
 
@@ -107,22 +106,20 @@ In summary, placing `load_dotenv()` in `manage.py` is a strategic choice to ensu
 
 ## Key Features in Detail
 
-### Data Sync Lifecycle with HubSpot
-The application maintains a synchronized relationship with HubSpot, ensuring that the CRM is always up-to-date with the status of approved volunteers.
+### Application Approval Workflow
+The application follows a simple, internal workflow for managing new volunteer applications.
 
-1.  **Public Signup**: A prospective volunteer fills out the public signup form. A new `Volunteer` record is created in the local database with a `status` of `pending`. No data is sent to HubSpot at this stage.
+1.  **Public Signup**: A prospective volunteer fills out the public signup form. A new `Volunteer` record is created in the local database with a `status` of `pending`.
 2.  **Admin Review**: An authenticated administrator reviews the pending applications on the dashboard.
-3.  **Approval and Creation**: When an admin approves an application, the volunteer's status is changed to `approved`, and their information is synced to HubSpot, creating a new contact. The unique HubSpot ID is then saved back to the local `Volunteer` record.
-4.  **Rejection**: If an application is rejected, the status is simply updated to `rejected`, and no data is sent to HubSpot.
-5.  **Updates**: If an admin edits the details of an *approved* volunteer, the changes are synced to HubSpot, updating the corresponding contact's properties.
-6.  **Deletions**: If an admin deletes a volunteer who has been previously synced to HubSpot, the application makes a corresponding API call to **archive** the contact in HubSpot, keeping the two systems in sync.
+3.  **Approval**: When an admin approves an application, the volunteer's status is changed to `approved`.
+4.  **Rejection**: If an application is rejected, the status is simply updated to `rejected`.
+5.  **Updates**: An admin can edit the details of any volunteer at any time.
+6.  **Deletions**: An admin can delete a volunteer record from the database.
 
 ### CSV Bulk Import
-To accommodate large-scale data entry, the application supports bulk importing of volunteers from a CSV file. This feature is designed for efficiency and immediate synchronization.
+To accommodate large-scale data entry, the application supports bulk importing of volunteers from a CSV file.
 
 -   **Direct Approval**: Volunteers imported via CSV are considered pre-approved and are created in the local database with a status of `approved`.
--   **Batch Synchronization**: Immediately after the local records are created, their information is sent to HubSpot using a single, efficient **batch API request** (`hubspot_api.batch_create_contacts`). This minimizes the number of API calls.
--   **ID-Linking**: The system processes the response from the batch API call, extracts the new HubSpot IDs, and updates the corresponding local volunteer records.
 
 ### Data Visualization
 To provide administrators with at-a-glance insights into their volunteer community, a data visualization feature has been implemented.

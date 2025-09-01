@@ -5,30 +5,6 @@ from django.contrib.auth.models import User
 from .models import Volunteer
 from unittest.mock import patch
 
-class VolunteerModelTests(TestCase):
-    def test_can_create_multiple_volunteers_with_null_hubspot_id(self):
-        """
-        Tests that multiple volunteers can be created with hubspot_id=None
-        without violating any unique constraints.
-        """
-        try:
-            Volunteer.objects.create(
-                first_name='Test',
-                last_name='User1',
-                email='test1@example.com',
-                phone_number='1234567890'
-            )
-            Volunteer.objects.create(
-                first_name='Test',
-                last_name='User2',
-                email='test2@example.com',
-                phone_number='0987654321'
-            )
-        except Exception as e:
-            self.fail(f"Creating multiple volunteers with null hubspot_id failed: {e}")
-
-        self.assertEqual(Volunteer.objects.count(), 2)
-
 
 class VolunteerAPITests(TestCase):
     def setUp(self):
@@ -79,15 +55,10 @@ class VolunteerAPITests(TestCase):
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['first_name'], self.volunteer_data['first_name'])
 
-    @patch('volunteer.api_views.HubspotAPI')
-    def test_approve_action(self, MockHubspotAPI):
+    def test_approve_action(self):
         """
-        Tests the custom 'approve' action on the ViewSet, mocking the HubSpot API call.
+        Tests the custom 'approve' action on the ViewSet.
         """
-        # Configure the mock to simulate a successful API call
-        mock_hubspot_instance = MockHubspotAPI.return_value
-        mock_hubspot_instance.create_contact.return_value.id = 'hs_12345'
-
         volunteer = Volunteer.objects.create(**self.volunteer_data)
         approve_url = reverse('volunteer-approve', kwargs={'pk': volunteer.pk})
 
@@ -100,27 +71,11 @@ class VolunteerAPITests(TestCase):
         # Refresh the volunteer from the database to get the updated status
         volunteer.refresh_from_db()
         self.assertEqual(volunteer.status, 'approved')
-        self.assertEqual(volunteer.hubspot_id, 'hs_12345')
 
-        # Verify that the mocked API was called with the correct arguments
-        mock_hubspot_instance.create_contact.assert_called_once_with(
-            email=volunteer.email,
-            first_name=volunteer.first_name,
-            last_name=volunteer.last_name,
-            phone_number=volunteer.phone_number,
-            preferred_volunteer_role=volunteer.preferred_volunteer_role,
-            availability=volunteer.availability,
-            how_did_you_hear_about_us=volunteer.how_did_you_hear_about_us,
-        )
-
-    @patch('volunteer.api_views.HubspotAPI')
-    def test_reject_action(self, MockHubspotAPI):
+    def test_reject_action(self):
         """
         Tests the custom 'reject' action on the ViewSet.
-        It should change the volunteer's status and NOT call the HubSpot API.
         """
-        mock_hubspot_instance = MockHubspotAPI.return_value
-
         volunteer = Volunteer.objects.create(**self.volunteer_data)
         reject_url = reverse('volunteer-reject', kwargs={'pk': volunteer.pk})
 
@@ -132,10 +87,6 @@ class VolunteerAPITests(TestCase):
 
         volunteer.refresh_from_db()
         self.assertEqual(volunteer.status, 'rejected')
-        self.assertIsNone(volunteer.hubspot_id)
-
-        # Verify that the HubSpot API was NOT called
-        mock_hubspot_instance.create_contact.assert_not_called()
 
     def test_delete_action(self):
         """
@@ -179,27 +130,11 @@ class VolunteerAPITests(TestCase):
         self.assertEqual(response.data[1]['preferred_volunteer_role'], 'Teaching')
         self.assertEqual(response.data[1]['count'], 1)
 
-    @patch('volunteer.api_views.HubspotAPI')
-    def test_csv_upload_and_batch_sync(self, MockHubspotAPI):
+    def test_csv_upload(self):
         """
-        Tests the enhanced CSV upload functionality, ensuring volunteers are
-        created, approved, and batch-synced to HubSpot.
+        Tests the CSV upload functionality, ensuring volunteers are
+        created and approved locally.
         """
-        # Configure the mock to simulate a successful batch API call
-        mock_hubspot_instance = MockHubspotAPI.return_value
-        # The mock response needs to be an object with a 'status' and 'results' attribute
-        mock_hubspot_response = type('MockResponse', (), {})()
-        mock_hubspot_response.status = 'COMPLETE'
-        # The results should be a list of objects, each with an 'id' and 'properties'
-        mock_contact1 = type('MockContact', (), {})()
-        mock_contact1.id = 'hs_csv_1'
-        mock_contact1.properties = {'email': 'csv1@example.com'}
-        mock_contact2 = type('MockContact', (), {})()
-        mock_contact2.id = 'hs_csv_2'
-        mock_contact2.properties = {'email': 'csv2@example.com'}
-        mock_hubspot_response.results = [mock_contact1, mock_contact2]
-        mock_hubspot_instance.batch_create_contacts.return_value = mock_hubspot_response
-
         # Create a CSV file in memory
         csv_data = (
             "First Name,Last Name,Email,Phone Number,Preferred Volunteer Role,Availability\n"
@@ -223,10 +158,3 @@ class VolunteerAPITests(TestCase):
         # Verify volunteers were created as 'approved'
         self.assertEqual(Volunteer.objects.get(email='csv1@example.com').status, 'approved')
         self.assertEqual(Volunteer.objects.get(email='csv2@example.com').status, 'approved')
-
-        # Verify HubSpot IDs were updated from the mock response
-        self.assertEqual(Volunteer.objects.get(email='csv1@example.com').hubspot_id, 'hs_csv_1')
-        self.assertEqual(Volunteer.objects.get(email='csv2@example.com').hubspot_id, 'hs_csv_2')
-
-        # Verify that the batch API was called once
-        mock_hubspot_instance.batch_create_contacts.assert_called_once()

@@ -11,7 +11,7 @@ from django.db.models import Count
 
 from .models import Volunteer
 from .serializers import VolunteerSerializer
-from .hubspot_api import HubspotAPI
+
 
 class VolunteerVisualizationView(APIView):
     """
@@ -37,10 +37,6 @@ class VolunteerViewSet(viewsets.ModelViewSet):
     """
     API endpoint for administrators to manage volunteers.
     Provides full CRUD functionality and custom actions for approval/rejection.
-    This ViewSet also handles synchronization with HubSpot:
-    - Approving a volunteer creates a contact in HubSpot.
-    - Updating a volunteer updates the HubSpot contact.
-    - Deleting a volunteer archives the contact in HubSpot.
     Requires authentication.
     """
     queryset = Volunteer.objects.all().order_by('-id')
@@ -51,27 +47,11 @@ class VolunteerViewSet(viewsets.ModelViewSet):
     def approve(self, request, pk=None):
         """
         Custom action to approve a volunteer application.
-        This changes the volunteer's status to 'approved' and triggers the sync to HubSpot.
+        This changes the volunteer's status to 'approved'.
         """
         volunteer = self.get_object()
         if volunteer.status == 'pending':
             volunteer.status = 'approved'
-
-            # Sync to HubSpot upon approval
-            hubspot_api = HubspotAPI()
-            api_response = hubspot_api.create_contact(
-                email=volunteer.email,
-                first_name=volunteer.first_name,
-                last_name=volunteer.last_name,
-                phone_number=volunteer.phone_number,
-                preferred_volunteer_role=volunteer.preferred_volunteer_role,
-                availability=volunteer.availability,
-                how_did_you_hear_about_us=volunteer.how_did_you_hear_about_us,
-            )
-            # If the sync is successful, save the returned HubSpot ID
-            if api_response:
-                volunteer.hubspot_id = api_response.id
-
             volunteer.save()
             return Response({'status': 'volunteer approved'}, status=status.HTTP_200_OK)
         else:
@@ -82,52 +62,15 @@ class VolunteerViewSet(viewsets.ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         """
-        Deletes a volunteer from the local database and also archives the
-        corresponding contact in HubSpot if it exists.
+        Deletes a volunteer from the local database.
         """
-        volunteer = self.get_object()
-
-        # If the volunteer has a HubSpot ID, attempt to delete them from HubSpot first.
-        if volunteer.hubspot_id:
-            hubspot_api = HubspotAPI()
-            # The delete_contact method returns True on success, False on failure.
-            # We can optionally add more robust error handling here if needed.
-            hubspot_api.delete_contact(volunteer.hubspot_id)
-
-        # After handling HubSpot, proceed with the default deletion behavior.
         return super().destroy(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
         """
-        Updates a volunteer's details and syncs the changes to HubSpot if the
-        volunteer has already been approved and has a HubSpot ID.
+        Updates a volunteer's details.
         """
-        # First, perform the default update behavior from the parent class.
-        # This will update the volunteer instance in the local database.
-        response = super().update(request, *args, **kwargs)
-
-        # If the update was successful (HTTP 200 OK), proceed to sync with HubSpot.
-        if response.status_code == status.HTTP_200_OK:
-            # Retrieve the updated volunteer instance.
-            volunteer = self.get_object()
-
-            # If the volunteer has a HubSpot ID, it means they have been synced before.
-            if volunteer.hubspot_id:
-                # Prepare the data for the HubSpot API call.
-                hubspot_api = HubspotAPI()
-                properties = {
-                    "email": volunteer.email,
-                    "firstname": volunteer.first_name,
-                    "lastname": volunteer.last_name,
-                    "phone": volunteer.phone_number,
-                    "preferred_volunteer_role": volunteer.preferred_volunteer_role,
-                    "availability": volunteer.availability,
-                    "how_did_you_hear_about_us": volunteer.how_did_you_hear_about_us,
-                }
-                # Call the HubSpot API to update the contact.
-                hubspot_api.update_contact(volunteer.hubspot_id, properties)
-
-        return response
+        return super().update(request, *args, **kwargs)
 
     @action(detail=True, methods=['post'], url_path='reject')
     def reject(self, request, pk=None):
@@ -162,8 +105,8 @@ class VolunteerPublicCreateView(generics.CreateAPIView):
 class VolunteerCSVUploadAPIView(APIView):
     """
     API endpoint for batch uploading volunteers from a CSV file.
-    This process directly approves the volunteers, creates them in the local
-    database, and performs a batch sync to HubSpot.
+    This process directly approves the volunteers and creates them in the local
+    database.
     Requires admin authentication.
     """
     permission_classes = [IsAuthenticated]
@@ -190,7 +133,6 @@ class VolunteerCSVUploadAPIView(APIView):
                 reader.fieldnames = [field.lower().replace(' ', '_').replace('?', '') for field in reader.fieldnames]
 
             volunteers_to_create = []
-            contacts_for_hubspot = []
             errors = []
 
             for row in reader:
@@ -228,46 +170,14 @@ class VolunteerCSVUploadAPIView(APIView):
                     )
                 )
 
-                contacts_for_hubspot.append({
-                    "email": email,
-                    "firstname": first_name,
-                    "lastname": last_name,
-                    "phone": phone_number,
-                    "preferred_volunteer_role": preferred_volunteer_role,
-                    "availability": availability,
-                    "how_did_you_hear_about_us": how_did_you_hear_about_us,
-                    "lifecyclestage": "lead",
-                })
-
             if not volunteers_to_create:
                 return Response({"error": "No valid volunteer data found in CSV.", "errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Get the list of emails before creating the volunteers
-            volunteer_emails = [v.email for v in volunteers_to_create]
+            created_count = len(volunteers_to_create)
             Volunteer.objects.bulk_create(volunteers_to_create)
 
-            # After bulk creating, the volunteer instances in memory don't have their IDs.
-            # We need to re-fetch them from the database to get the IDs.
-            created_volunteers_with_pks = Volunteer.objects.filter(email__in=volunteer_emails)
-            email_to_volunteer_map = {v.email: v for v in created_volunteers_with_pks}
-
-            hubspot_api = HubspotAPI()
-            hubspot_response = hubspot_api.batch_create_contacts(contacts_for_hubspot)
-
-            synced_count = 0
-            if hubspot_response and hubspot_response.status == 'COMPLETE':
-                volunteers_to_update = []
-                for contact in hubspot_response.results:
-                    volunteer = email_to_volunteer_map.get(contact.properties['email'])
-                    if volunteer:
-                        volunteer.hubspot_id = contact.id
-                        volunteers_to_update.append(volunteer)
-                        synced_count += 1
-
-                Volunteer.objects.bulk_update(volunteers_to_update, ['hubspot_id'])
-
             return Response({
-                "status": f"{len(volunteers_to_create)} volunteers created locally. {synced_count} synced to HubSpot.",
+                "status": f"{created_count} volunteers created locally.",
                 "errors": errors
             }, status=status.HTTP_201_CREATED)
 

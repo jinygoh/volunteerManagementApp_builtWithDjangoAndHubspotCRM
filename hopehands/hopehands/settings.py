@@ -3,7 +3,7 @@ Django settings for the HopeHands project.
 
 This file contains the core configuration for the Django application, including
 database settings, installed apps, middleware, and third-party integrations
-like Django REST Framework and HubSpot.
+like Django REST Framework.
 
 Environment-specific variables are loaded from a .env file.
 For more information on this file, see
@@ -102,9 +102,6 @@ REST_FRAMEWORK = {
     )
 }
 
-# HubSpot API token
-HUBSPOT_PRIVATE_APP_TOKEN = os.environ.get('HUBSPOT_PRIVATE_APP_TOKEN')
-
 
 # --- Password Validation ---
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -147,3 +144,13 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Authentication URLs for the template-based views
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
+
+# --- Test-specific Settings ---
+import sys
+
+# Use a fast in-memory SQLite database for tests to avoid needing a full MySQL server.
+if 'test' in sys.argv:
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': ':memory:'
+    }

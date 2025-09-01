@@ -34,7 +34,7 @@ This is the flow for a new volunteer submitting their application.
 4.  **End at the Backend Logic - `hopehands/volunteer/api_views.py`:**
     *   Open `api_views.py` and find the `VolunteerPublicCreateView`. This is a generic `CreateAPIView` from Django REST Framework.
     *   It uses the `VolunteerSerializer` to validate the incoming data. If the data is valid, it creates a new `Volunteer` object in the database.
-    *   Crucially, the new `Volunteer` object is automatically saved with its default `status` of `'pending'`. No HubSpot interaction happens at this stage.
+    *   Crucially, the new `Volunteer` object is automatically saved with its default `status` of `'pending'`.
 
 ---
 
@@ -62,26 +62,24 @@ This flow covers an admin logging in, viewing the volunteer list, and approving 
     *   For a "pending" volunteer, the admin clicks the "Approve" button. This calls the `handleApprove(id)` function.
     *   `handleApprove` calls the `approveVolunteer(id)` function from `api.js`, which sends a `POST` request to the `/api/volunteers/{id}/approve/` endpoint.
 
-5.  **Backend Approval Logic (`api_views.py` -> `hubspot_api.py`):**
+5.  **Backend Approval Logic (`api_views.py`):**
     *   The request is routed to the `approve` custom action inside the `VolunteerViewSet`.
     *   This action performs the core logic:
         1.  It finds the `Volunteer` in the database.
         2.  It changes the `volunteer.status` to `'approved'`.
-        3.  It instantiates the `HubspotAPI` service and calls `create_contact()`.
-        4.  It receives the new contact's ID from HubSpot and saves it to the `volunteer.hubspot_id` field.
-        5.  It saves the updated volunteer object.
+        3.  It saves the updated volunteer object.
 
 6.  **Admin Action (Update):**
     *   The admin clicks the "Edit" button for a volunteer. This navigates them to the `EditVolunteerPage`.
     *   After changing the data and clicking "Save", the `handleSubmit` function calls `updateVolunteer(id, data)` from `api.js`.
     *   This sends a `PUT` request to `/api/volunteers/{id}/`.
-    *   The backend `VolunteerViewSet`'s `update` method handles the request. It updates the local volunteer record and, if the volunteer has a `hubspot_id`, it calls `hubspot_api.update_contact` to keep the CRM in sync.
+    *   The backend `VolunteerViewSet`'s `update` method handles the request by updating the local volunteer record.
 
 7.  **Admin Action (Delete):**
     *   The admin clicks the "Delete" button for a volunteer.
     *   The `handleDelete(id)` function in `DashboardPage.jsx` calls `deleteVolunteer(id)` from `api.js`.
     *   This sends a `DELETE` request to `/api/volunteers/{id}/`.
-    *   The backend `VolunteerViewSet`'s `destroy` method handles this. It calls `hubspot_api.delete_contact` to archive the contact in HubSpot (if a `hubspot_id` exists) and then deletes the volunteer from the local database.
+    *   The backend `VolunteerViewSet`'s `destroy` method handles this by deleting the volunteer from the local database.
 
 8.  **UI Update (`DashboardPage.jsx`):**
     *   After the `approveVolunteer` API call successfully completes, the `DashboardPage` calls `fetchVolunteers()` again to get the updated list from the backend.
@@ -107,8 +105,6 @@ This flow covers an admin using the CSV upload feature to perform a batch import
 3.  **End at the Backend Logic - `hopehands/volunteer/api_views.py`:**
     *   The `/api/upload-csv/` URL is handled by the `VolunteerCSVUploadAPIView`.
     *   This view reads the CSV file, and for each row, it creates a `Volunteer` object with the status `'approved'`. It uses `bulk_create` for efficiency.
-    *   It then calls the `hubspot_api.batch_create_contacts` method to sync all the new volunteers to HubSpot in a single API call.
-    *   Finally, it updates the newly created local `Volunteer` records with their `hubspot_id` returned from the batch API call.
 
 ### Flow 4: Admin Views Volunteer Data Visualization
 

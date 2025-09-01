@@ -12,7 +12,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from .forms import VolunteerForm, CSVUploadForm
-from .hubspot_api import HubspotAPI
 from .models import Volunteer
 import logging
 import csv
@@ -119,21 +118,7 @@ def volunteer_update(request, volunteer_id):
     if request.method == 'POST':
         form = VolunteerForm(request.POST, instance=volunteer)
         if form.is_valid():
-            updated_volunteer = form.save()
-
-            if updated_volunteer.status == 'approved' and updated_volunteer.hubspot_id:
-                hubspot_api = HubspotAPI()
-                properties = {
-                    "email": updated_volunteer.email,
-                    "firstname": updated_volunteer.first_name,
-                    "lastname": updated_volunteer.last_name,
-                    "phone": updated_volunteer.phone_number,
-                    "preferred_volunteer_role": updated_volunteer.preferred_volunteer_role,
-                    "availability": updated_volunteer.availability,
-                    "how_did_you_hear_about_us": updated_volunteer.how_did_you_hear_about_us,
-                }
-                hubspot_api.update_contact(updated_volunteer.hubspot_id, properties)
-
+            form.save()
             return redirect('volunteer_detail', volunteer_id=volunteer.id)
     else:
         form = VolunteerForm(instance=volunteer)
@@ -161,20 +146,6 @@ def volunteer_approve(request, volunteer_id):
         volunteer = get_object_or_404(Volunteer, pk=volunteer_id)
         if volunteer.status == 'pending':
             volunteer.status = 'approved'
-
-            hubspot_api = HubspotAPI()
-            api_response = hubspot_api.create_contact(
-                email=volunteer.email,
-                first_name=volunteer.first_name,
-                last_name=volunteer.last_name,
-                phone_number=volunteer.phone_number,
-                preferred_volunteer_role=volunteer.preferred_volunteer_role,
-                availability=volunteer.availability,
-                how_did_you_hear_about_us=volunteer.how_did_you_hear_about_us,
-            )
-            if api_response:
-                volunteer.hubspot_id = api_response.id
-
             volunteer.save()
         return redirect('volunteer_list')
     return redirect('volunteer_list')

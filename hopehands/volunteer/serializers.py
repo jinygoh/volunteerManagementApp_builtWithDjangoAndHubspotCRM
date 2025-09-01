@@ -34,9 +34,8 @@ class VolunteerSerializer(serializers.ModelSerializer):
             'preferred_volunteer_role',
             'availability',
             'how_did_you_hear_about_us',
-            'status',
-            'hubspot_id'
+            'status'
         ]
-        # The 'status' and 'hubspot_id' fields are managed by the backend logic
-        # (e.g., the approval workflow) and should not be directly editable by API clients.
-        read_only_fields = ['status', 'hubspot_id']
+        # The 'status' field is managed by the backend logic (e.g., the
+        # approval workflow) and should not be directly editable by API clients.
+        read_only_fields = ['status']

@@ -7,9 +7,8 @@ They contain the essential fields and behaviors of the data you’re storing.
 Django follows the DRY Principle. The goal is to define your data model in one
 place and automatically derive things from it.
 
-In this application, the Volunteer model is used to temporarily store volunteer
-data before it is sent to HubSpot. It also serves as the basis for the
-`VolunteerForm`.
+In this application, the Volunteer model is used to store all volunteer
+application data and serves as the basis for the `VolunteerForm`.
 """
 
 from django.db import models
@@ -19,7 +18,6 @@ class Volunteer(models.Model):
     """
     Represents a volunteer in the local database.
     This model's fields correspond to the fields in the volunteer signup form.
-    The data is saved here before being sent to the HubSpot CRM.
     """
     STATUS_CHOICES = (
         ('pending', 'Pending'),
@@ -45,21 +43,6 @@ class Volunteer(models.Model):
         default='pending',
         help_text="The application status, used in the admin approval workflow."
     )
-    hubspot_id = models.CharField(
-        max_length=100,
-        blank=True,
-        null=True,
-        help_text="Stores the HubSpot Contact ID after a volunteer is approved and synced."
-    )
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['hubspot_id'],
-                condition=~models.Q(hubspot_id=None),
-                name='unique_hubspot_id_when_not_null'
-            )
-        ]
 
     def __str__(self):
         """Returns the full name of the volunteer for display purposes."""
