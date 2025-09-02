@@ -14,7 +14,7 @@ import { jwtDecode } from "jwt-decode";
 import axios from 'axios';
 
 // Create the authentication context.
-const AuthContext = createContext(null);
+export const AuthContext = createContext(null);
 
 /**
  * The provider component that makes the authentication state and functions
