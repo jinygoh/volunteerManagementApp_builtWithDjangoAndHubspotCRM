@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 
 import os
 from pathlib import Path
+import sys
 
 # --- Core Paths and Security ---
 
@@ -80,35 +81,25 @@ WSGI_APPLICATION = "hopehands.wsgi.application"
 
 # --- Database Configuration ---
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-import sys
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.environ.get('DB_NAME'),
+        'USER': os.environ.get('DB_USER'),
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
-
-
-# The original MySQL database configuration is kept below for reference.
-# To use it, you would need to set up a MySQL server and configure
-# the environment variables in a .env file.
-#
-# DATABASES = {
-#     "default": {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': os.environ.get('DB_NAME'),
-#         'USER': os.environ.get('DB_USER'),
-#         'PASSWORD': os.environ.get('DB_PASSWORD'),
-#         'HOST': 'localhost',
-#         'PORT': '3306',
-#     }
-# }
 
 # Use an in-memory SQLite database for tests to speed them up and avoid
 # dependencies on a separate database server.
 if 'test' in sys.argv:
-    DATABASES['default']['NAME'] = ':memory:'
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': ':memory:',
+    }
 
 
 # --- API and Third-Party Service Configuration ---
