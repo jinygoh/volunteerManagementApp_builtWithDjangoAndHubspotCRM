@@ -11,6 +11,22 @@ This document outlines the steps to set up and run the Volunteer Management Appl
 
 ## Setup Steps
 
+shortcut copy paste for backend
+
+py -m venv venv
+source venv/Scripts/activate
+pip install -r requirements.txt
+cd hopehands
+python manage.py makemigrations
+python manage.py migrate
+py manage.py runserver
+
+shortcut copy paste for front end
+
+cd frontend
+npm install
+npm run dev
+
 ### 1. Backend Setup (Django)
 
 1.  **Navigate to the backend directory:**
