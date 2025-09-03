@@ -20,8 +20,8 @@ export const api = axios.create({
 // Use an interceptor to inject the JWT token into the request headers.
 api.interceptors.request.use(config => {
     const authTokens = localStorage.getItem('authTokens') ? JSON.parse(localStorage.getItem('authTokens')) : null;
-    if (authTokens) {
-        config.headers.Authorization = `Bearer ${authTokens.access}`;
+    if (authTokens && authTokens.token) { // Check for the token property
+        config.headers.Authorization = `Bearer ${authTokens.token}`;
     }
     return config;
 });
@@ -32,7 +32,7 @@ api.interceptors.request.use(config => {
  * @returns {Promise} The axios promise for the request.
  */
 export const signup = (volunteerData) => {
-  return api.post('signup/', volunteerData);
+  return api.post('signup', volunteerData);
 };
 
 /**
@@ -40,7 +40,7 @@ export const signup = (volunteerData) => {
  * @returns {Promise} The axios promise for the request.
  */
 export const getVolunteers = () => {
-  return api.get('volunteers/');
+  return api.get('volunteers');
 };
 
 /**
@@ -49,7 +49,7 @@ export const getVolunteers = () => {
  * @returns {Promise} The axios promise for the request.
  */
 export const approveVolunteer = (id) => {
-  return api.post(`volunteers/${id}/approve/`);
+  return api.post(`volunteers/${id}/approve`);
 };
 
 /**
@@ -58,7 +58,7 @@ export const approveVolunteer = (id) => {
  * @returns {Promise} The axios promise for the request.
  */
 export const rejectVolunteer = (id) => {
-  return api.post(`volunteers/${id}/reject/`);
+  return api.post(`volunteers/${id}/reject`);
 };
 
 /**
@@ -67,7 +67,7 @@ export const rejectVolunteer = (id) => {
  * @returns {Promise} The axios promise for the request.
  */
 export const deleteVolunteer = (id) => {
-  return api.delete(`volunteers/${id}/`);
+  return api.delete(`volunteers/${id}`);
 };
 
 /**
@@ -77,7 +77,7 @@ export const deleteVolunteer = (id) => {
  * @returns {Promise} The axios promise for the request.
  */
 export const updateVolunteer = (id, volunteerData) => {
-  return api.put(`volunteers/${id}/`, volunteerData);
+  return api.put(`volunteers/${id}`, volunteerData);
 };
 
 /**
@@ -88,25 +88,19 @@ export const updateVolunteer = (id, volunteerData) => {
 export const uploadCsv = (file) => {
   const formData = new FormData();
   formData.append('file', file);
-  return api.post('upload-csv/', formData);
+  // Note: This route is now nested under 'volunteers'
+  return api.post('volunteers/upload-csv', formData);
 };
 
 /**
- * Sends a POST request to the /api/token/ endpoint to log in an admin user.
+ * Sends a POST request to the /api/auth/login endpoint to log in an admin user.
  * @param {object} credentials - An object with { username, password }.
  * @returns {Promise} The axios promise for the request.
  */
 export const login = (credentials) => {
-  return api.post('token/', credentials);
+  return api.post('auth/login', credentials);
 };
 
-/**
- * Sends a POST request to log out the currently authenticated user.
- * Note: This endpoint might not be implemented on the backend.
- * @returns {Promise} The axios promise for the request.
- */
-export const logout = () => {
-  return api.post('logout/');
-};
+// The logout function is removed as it's handled client-side by clearing the token.
 
 export default api;

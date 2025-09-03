@@ -31,3 +31,7 @@ db.sqlite3
 .env
 hopehands/Lib/
 hopehands/Scripts/
+
+# Node.js backend
+backend/node_modules/
+backend/.env
