@@ -1,55 +1,29 @@
 # How to Set Up and Run the Volunteer Management Application
 
-This document outlines the steps to set up and run the Volunteer Management Application, which consists of a Django backend and a React frontend.
+This document outlines the steps to set up and run the Volunteer Management Application, which consists of a Spring Boot backend and a React frontend.
 
 ## Prerequisites
 
-*   Python 3.x
-*   pip (Python package installer)
+*   Java 17 or later
+*   Maven
 *   Node.js (LTS version recommended)
 *   npm (Node Package Manager, comes with Node.js)
 
 ## Setup Steps
 
-shortcut copy paste for backend
-
-py -m venv venv
-source venv/Scripts/activate
-pip install -r requirements.txt
-cd hopehands
-python manage.py makemigrations
-python manage.py migrate
-py manage.py runserver
-
-shortcut copy paste for front end
-
-cd frontend
-npm install
-npm run dev
-
-### 1. Backend Setup (Django)
+### 1. Backend Setup (Spring Boot)
 
 1.  **Navigate to the backend directory:**
     ```bash
-    cd hopehands
+    cd backend
     ```
 
-2.  **Install Python dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-3.  **Apply database migrations:**
-    ```bash
-    python manage.py migrate
-    ```
-
-4.  **Create a `.env` file:**
-    Copy the `.env.example` file to `.env` in the root directory of the project (not inside `hopehands` or `frontend`).
+2.  **Create a `.env` file:**
+    Copy the `.env.example` file to `.env` in the root directory of the project.
     ```bash
     cp ../.env.example ./.env
     ```
-    Open the newly created `.env` file and fill in the necessary environment variables, such as `HUBSPOT_PRIVATE_APP_TOKEN`, database credentials, etc. (Refer to the `.env.example` for required variables).
+    Open the newly created `.env` file and fill in the necessary environment variables for the database.
 
 ### 2. Frontend Setup (React)
 
@@ -69,12 +43,12 @@ To run the complete application, you need to start both the backend and the fron
 
 ### 1. Start the Backend Server
 
-In the terminal window where you performed the backend setup (you should be in the `hopehands` directory):
+In the terminal window where you performed the backend setup (you should be in the `backend` directory):
 
 ```bash
-python manage.py runserver
+mvn spring-boot:run
 ```
-This will typically start the Django development server at `http://127.0.0.1:8000/`.
+This will typically start the Spring Boot development server at `http://127.0.0.1:8080/`.
 
 ### 2. Start the Frontend Server
 
@@ -94,10 +68,10 @@ You should now be able to access the application in your web browser at `http://
 
 ### Backend Tests
 
-The project includes a test suite for the Django backend. To run these tests, navigate to the `hopehands` directory and run the following command:
+The project includes a test suite for the Spring Boot backend. To run these tests, navigate to the `backend` directory and run the following command:
 
 ```bash
-python manage.py test
+mvn test
 ```
 
 ### Frontend Tests

@@ -1,5 +1,4 @@
 django
-hubspot-api-client
 mysqlclient
 python-decouple
 dotenv
